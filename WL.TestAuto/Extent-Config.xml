@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<extentreports>
+<configuration>
+<encoding>UTF-8</encoding>
+<documentTitle>My Custom Browser Title</documentTitle> <!-- This title will be displayed as browser title for the page -->
+<reportName>My Custom Report Title</reportName> <!-- This will be your report heading -->
+<reportHeadline>Test Case Execution Suite</reportHeadline>
+</configuration>
+</extentreports>
