@@ -28,7 +28,7 @@ namespace WL.TestAuto
 {
     public static class GenericMethods
     {
-        private static readonly IWebDriver driver = Browsers.GetDriver;
+        //private static readonly IWebDriver driver = Browsers.GetDriver;
 
         //Extension for Get Data from app.config
         public static string AppSettings(this string Key)
@@ -40,11 +40,11 @@ namespace WL.TestAuto
         }
 
         //Clear text from text field
-        public static void Clear(this IWebElement element)
+        public static void ClearText(this IWebElement element)
         {
             try
             {
-                if(element.Exists(5))
+                if (element.Exists(5))
                 {
                     element.SendKeys(Keys.Control + "A" + Keys.Control);
                     element.SendKeys(Keys.Delete);
@@ -97,7 +97,7 @@ namespace WL.TestAuto
             Boolean flag = false;
             try
             {
-                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(timeoutSeconds));
+                WebDriverWait wait = new WebDriverWait(Browsers.GetDriver, TimeSpan.FromSeconds(timeoutSeconds));
                 if (wait.Until(driver => element.Displayed && element.Size.Height > 0))
                 {
                     flag = true;
@@ -117,7 +117,7 @@ namespace WL.TestAuto
             Boolean flag = false;
             try
             {
-                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(timeoutSeconds));
+                WebDriverWait wait = new WebDriverWait(Browsers.GetDriver, TimeSpan.FromSeconds(timeoutSeconds));
                 if (wait.Until(driver => element.Displayed && element.Size.Height > 0))
                 {
                     flag = false;
@@ -147,7 +147,7 @@ namespace WL.TestAuto
         {
             try
             {
-                IJavaScriptExecutor jsDriver = (IJavaScriptExecutor)driver;
+                IJavaScriptExecutor jsDriver = (IJavaScriptExecutor)Browsers.GetDriver;
                 /*string brWidth = element.GetCssValue("border-width");
                 string brStyle = element.GetCssValue("border-style");
                 string brColor = element.GetCssValue("border-color");
@@ -325,7 +325,7 @@ namespace WL.TestAuto
                         if (span.Text.ToLower().Equals(value.ToLower()))
                         {
                             span.Click();
-                            IWebElement subVal = driver.FindElement(By.XPath("*//span[text()='" + subValue + "']"));
+                            IWebElement subVal = Browsers.GetDriver.FindElement(By.XPath("*//span[text()='" + subValue + "']"));
                             if (subVal.Exists(10))
                             {
                                 subVal.Click();
@@ -355,7 +355,7 @@ namespace WL.TestAuto
             {   
                 if (isTableEmpty)
                 {
-                    IReadOnlyList<IWebElement> noElement = driver.FindElements(By.XPath("*//table//*[contains(text(),\"No records to display\")]"));
+                    IReadOnlyList<IWebElement> noElement = Browsers.GetDriver.FindElements(By.XPath("*//table//*[contains(text(),\"No records to display\")]"));
                     if (noElement.Count > 0)
                     {
                         noElement.FirstOrDefault().Highlight();
@@ -425,18 +425,35 @@ namespace WL.TestAuto
             return colNum;
         }
         
+        //Save Reports
+        public static void SaveReport()
+        {
+
+        }
+        
+        //Read from PDF
         public static string GetTextFromPDF(string PDFFileName)
         {
             StringBuilder text = new StringBuilder();
             PdfReader PDF = new PdfReader(PDFFileName);
             PdfDocument docPDF = new PdfDocument(PDF);
-            for(int i = 1; i<=docPDF.GetNumberOfPages(); i++)
+            try
             {
-                string txt = PdfTextExtractor.GetTextFromPage(docPDF.GetPage(i));
-                text.Append(txt);
+                for (int i = 1; i <= docPDF.GetNumberOfPages(); i++)
+                {
+                    string txt = PdfTextExtractor.GetTextFromPage(docPDF.GetPage(i));
+                    text.Append(txt);
+                }
+                docPDF.Close();
             }
-            docPDF.Close();
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message + " " + ex.StackTrace);
+            }
+            
             return text.ToString();
         }
+
+
     }
 }

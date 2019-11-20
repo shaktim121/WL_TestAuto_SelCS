@@ -14,6 +14,8 @@ namespace WL.TestAuto
     public class HRPage : AutomationCore
     {
         private IWebDriver driver;
+        //public override TestContext TestContext { get; set; }
+        
 
         #region HR Page Object Collection
         [FindsBy(How = How.XPath, Using = "*//span[text()='Human Resources' or text()='Ressources humaines']")]
@@ -552,13 +554,21 @@ namespace WL.TestAuto
         /// <param name="toolBars"></param>
         /// <param name="tableColumns"></param>
         /// <returns></returns>
-        public bool Fn_Verify_Fields_In_HR_Screens(string textFields, string buttons, string drpDowns, string checkBoxes, string toolBars, string tableColumns, string labelFields)
+        public bool Fn_Verify_Fields_In_HR_Screens()
         {
             Boolean flag = false;
             try
             {
+                string textFields = data.GetTestData("Verify_TextFields");
+                string buttons = data.GetTestData("Verify_Buttons");
+                string drpDowns = data.GetTestData("Verify_DropDowns");
+                string checkBoxes = data.GetTestData("Verify_CheckBoxes");
+                string toolBars = data.GetTestData("Verify_ToolBars");
+                string tableColumns = data.GetTestData("Verify_TableColumns");
+                string labelFields = data.GetTestData("Verify_LabelFields");
+
                 //Code for text field verification
-                if (textFields.Length > 0)
+                if (textFields!=null && textFields.Length > 0)
                 {
                     string[] text = textFields.Split(';');
                     foreach (string t in text)
@@ -579,7 +589,7 @@ namespace WL.TestAuto
                 }
 
                 //Code to verify buttons
-                if (buttons.Length > 0)
+                if (buttons!= null && buttons.Length > 0)
                 {
                     string[] btn = buttons.Split(';');
                     foreach (string b in btn)
@@ -600,7 +610,7 @@ namespace WL.TestAuto
                 }
 
                 //Code to verify checkboxes
-                if (checkBoxes.Length > 0)
+                if (checkBoxes!=null && checkBoxes.Length > 0)
                 {
                     string[] chk = checkBoxes.Split(';');
                     foreach (string ch in chk)
@@ -633,7 +643,7 @@ namespace WL.TestAuto
                 }
 
                 //Code to verify Dropdown or Comboboxes
-                if (drpDowns.Length > 0)
+                if (drpDowns!=null && drpDowns.Length > 0)
                 {
                     string[] drp = drpDowns.Split(';');
                     foreach (string dd in drp)
@@ -654,7 +664,7 @@ namespace WL.TestAuto
                 }
 
                 //Code to verify Toolbar
-                if (toolBars.Length > 0)
+                if (toolBars!=null && toolBars.Length > 0)
                 {
                     string[] toolBarL = toolBars.Split(';');
                     foreach (string tool in toolBarL)
@@ -675,7 +685,7 @@ namespace WL.TestAuto
                 }
 
                 //Code to verify Column Headers in Table
-                if (tableColumns.Length > 0)
+                if (tableColumns!=null && tableColumns.Length > 0)
                 {
                     string[] cols = tableColumns.Split(';');
                     foreach (string col in cols)
@@ -707,7 +717,7 @@ namespace WL.TestAuto
                 }
 
                 //Code to verify other Label fields
-                if (labelFields.Length > 0)
+                if (labelFields!=null && labelFields.Length > 0)
                 {
                     string[] labels = labelFields.Split(';');
                     foreach (string label in labels)
@@ -1053,9 +1063,9 @@ namespace WL.TestAuto
                         GenericMethods.SelectValueFromDropDown(DrpDwn_CompMethod, List_AllDrpDwn, "Salaried");
                         Thread.Sleep(10000);
                         //Txt_StandardHours.Click();
-                        GenericMethods.Clear(Txt_StandardHours);
+                        GenericMethods.ClearText(Txt_StandardHours);
                         Txt_StandardHours.SendKeys("40");
-                        GenericMethods.Clear(Txt_CompAmount);
+                        GenericMethods.ClearText(Txt_CompAmount);
                         Txt_CompAmount.SendKeys("2500");
                         Thread.Sleep(2000);
                         if (ChkBoxList_Workdays.SelectCheckBoxFromList("Mon;Tues;Wed;Thur;Fri", true))

@@ -9,6 +9,7 @@ using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using AventStack.ExtentReports;
 using AventStack.ExtentReports.Reporter;
+using System.Data;
 
 namespace WL.TestAuto
 {
@@ -26,33 +27,29 @@ namespace WL.TestAuto
 
         //Report initialize
         private static readonly string fileName = ConfigurationManager.AppSettings["TestName"] + "_Report_" + Utilities.GetTimeStamp(DateTime.Now);
-        private static readonly string fileNameExt = fileName + ".html";        
-        private static readonly string reportPath = projectDirectory + "\\TestReports\\" + fileName + "\\" + fileNameExt;
+        private static readonly string fileNameExt = fileName + ".html";
+        public static readonly string reportPath = projectDirectory + "\\TestReports\\" + fileName + "\\" + fileNameExt;
 
-        public static ExtentReports extent = new ExtentReports();
-        public static ExtentV3HtmlReporter htmlReporter = new ExtentV3HtmlReporter(reportPath);
-        
+        public static ExtentReports extent;
+        public static ExtentV3HtmlReporter htmlReporter;
         public static ExtentTest test;
 
+        public static DataSet data;
         public TestContext TestContext { get; set; }
 
-        public string GetTestName()
-        {
-            TestContext TestContext = this.TestContext;
-            string testName = TestContext.TestName;
-
-            return testName;
-        }
-        
         // Core Automation class
+        
         [TestInitialize]
         public void StartUpTest()// This method fire at the start of the Test
-        {
+        {   
             string testName = TestContext.TestName;
             test = extent.CreateTest(testName);
+            
             try
             {
-                string lang = GetTestName().GetTestData("User_Language");
+                //Get all test data from DB
+                data = testName.LoadTestData();
+                //Initiate App Launch
                 Browsers.Init();
 
                 //LogIn to Application
@@ -61,21 +58,29 @@ namespace WL.TestAuto
             catch (Exception ex)
             {
                 test.Error("Failed to Launch/Login to Application or Browser with Exception: " + ex.StackTrace + " and Message: "+ ex.Message);
-                EndTest();
+                Browsers.Close();
+                extent.Flush();
+                Thread.Sleep(5000);
                 throw new Exception(ex.Message);
             }
         }
 
         [TestCleanup]
         public void EndTest()// This method will fire at the end of the Test
-        {
-           
+        {  
             //LogOut of Application
             Pages.LogIn.Fn_LogOutOfApplication();
-            
+            Thread.Sleep(5000);
             Browsers.Close();
             extent.Flush();
             Thread.Sleep(5000);
+        }
+        
+
+        [AssemblyCleanup]
+        public void EndClass()
+        {
+            
         }
     }
 }

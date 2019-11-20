@@ -8,6 +8,7 @@ using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.PageObjects;
 using AventStack.ExtentReports;
 using AventStack.ExtentReports.Reporter;
+using System.Data;
 
 namespace WL.TestAuto
 {
@@ -18,22 +19,24 @@ namespace WL.TestAuto
         public static void StartClass(TestContext context)
         {
             #region Report Initialize
+            extent = new ExtentReports();
+            htmlReporter = new ExtentV3HtmlReporter(reportPath);
             //htmlReporter.LoadConfig(projectDirectory + "\\" + @"Extent-Config.xml");
             htmlReporter.Config.DocumentTitle = ConfigurationManager.AppSettings["TestName"].ToString() + " Report";
             htmlReporter.Config.ReportName = ConfigurationManager.AppSettings["TestName"].ToString();
-            
-            extent.AttachReporter(htmlReporter);
 
             extent.AddSystemInfo("OS : ", Environment.OSVersion.ToString());
             extent.AddSystemInfo("Host Name : ", Dns.GetHostName());
             extent.AddSystemInfo("Browser : ", ConfigurationManager.AppSettings["browser"]);
+
+            extent.AttachReporter(htmlReporter);
             #endregion
         }
 
         [TestMethod]
         //1.	Human Resources - Employee Screen
         public void ZHRX_CAN_HR_UI_000100_Verify_Human_Resources_Employee_Screen()
-        {
+        {   
             //Change User language after log in
             Pages.Home.Fn_ChangeUserLanguage("English");
 
@@ -42,9 +45,9 @@ namespace WL.TestAuto
 
             //Navigate to Employee Screen in Human Resources
             Pages.HR.Fn_NavigateThroughHumanResources("Employee");
-
+            
             //Verify all fields in Employee Screen
-            if (Pages.HR.Fn_Verify_Fields_In_HR_Screens("Employee Number;Last Name;First Name;SIN;Organizational Unit", "Clear;Search", "Process Group", "Active;Benefited Leave;Leave;Terminated", "Biographical;Position;Employment;Terminations", "Employee Number;Last Name;First Name;Status;Process Group;Organizational Unit", ""))
+            if (Pages.HR.Fn_Verify_Fields_In_HR_Screens())
             {
                 test.Log(Status.Pass, "All fields in Employee screen verified successfully");
             }
@@ -68,6 +71,8 @@ namespace WL.TestAuto
         //2.	HR Screen - Open Screens in English **reports
         public void ZHRX_CAN_HR_UI_000200_Verify_Human_Resources_HR_Screen_Open_Screens_In_English()
         {
+            
+            
             //Change User language after log in
             Pages.Home.Fn_ChangeUserLanguage("English");
 
@@ -91,7 +96,7 @@ namespace WL.TestAuto
             }
 
             //Verify Anniversary Listing report
-            if(Pages.HR.Fn_ViewAndVerify_HR_ReportDisplayedOnScreen("Anniversary Listing"))
+            if (Pages.HR.Fn_ViewAndVerify_HR_ReportDisplayedOnScreen("Anniversary Listing"))
             {
                 test.Log(Status.Pass, "View and verify PDF report Aniversary Listing successful");
             }
@@ -101,7 +106,7 @@ namespace WL.TestAuto
             }
 
             //Navigate to Home
-            if(Pages.Home.Fn_NavigateToHomeScreen())
+            if (Pages.Home.Fn_NavigateToHomeScreen())
             {
                 test.Log(Status.Pass, "Navigated to Home Screen");
             }
