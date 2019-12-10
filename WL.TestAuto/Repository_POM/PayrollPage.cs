@@ -5,10 +5,12 @@ using OpenQA.Selenium.Support.PageObjects;
 using OpenQA.Selenium.Support.UI;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace WL.TestAuto
 {
@@ -63,6 +65,9 @@ namespace WL.TestAuto
         [FindsBy(How = How.XPath, Using = "*//span[contains(@class,'rmExpandRight') and text()='Standard']")]
         private IWebElement SubMenu_Standard { get; set; }
 
+        [FindsBy(How = How.XPath, Using = "*//span[contains(@class,'rmExpandRight') and text()='Custom']")]
+        private IWebElement SubMenu_Custom { get; set; }
+
         [FindsBy(How = How.XPath, Using = "*//span[text()='Import Type']/parent::*/parent::*//input[@id='ctl00_MainContent_ImportControl_ImportExportId_Field_Input']")]
         private IWebElement DrpDwn_ImportType { get; set; }
 
@@ -89,6 +94,40 @@ namespace WL.TestAuto
         
         [FindsBy(How = How.XPath, Using = "*//a[@class='rwCloseButton' and @title='Close']")]
         private IWebElement Btn_CloseX { get; set; }
+
+        [FindsBy(How = How.XPath, Using = "*//span[text()='Undo Calc']")]
+        private IWebElement Btn_UndoCalc { get; set; }
+
+        [FindsBy(How = How.XPath, Using = "*//span[text()='Calculate']")]
+        private IWebElement Btn_Calculate { get; set; }
+
+        [FindsBy(How = How.XPath, Using = "*//div[contains(@class,'RadComboBoxDropDown') and contains(@style,'display: block')]")]
+        private IWebElement List_AllDrpDwn { get; set; }
+
+        [FindsBy(How = How.XPath, Using = "*//span[text()='Process Group']/parent::*/parent::*//input[@type='text']")]
+        private IWebElement DrpDwn_ProcessGrp { get; set; }
+
+        [FindsBy(How = How.XPath, Using = "*//span[text()='Run Type']/parent::*/parent::*//input[@type='text']")]
+        private IWebElement DrpDwn_RunType { get; set; }
+
+        [FindsBy(How = How.XPath, Using = "*//span[text()='Cheque Date']/parent::*/parent::*//input[@class='riTextBox riEnabled']")]
+        private IWebElement Txt_ChequeDate { get; set; }
+
+        [FindsBy(How = How.XPath, Using = "*//a[@id='ctl00_MainContent_PayrollProcessControl1_PayrollProcessView_ChequeDate_Field_popupButton']")]
+        private IWebElement Calendar_ChequeDate { get; set; }
+
+        [FindsBy(How = How.XPath, Using = "*//span['Status']/parent::*/parent::*//span[@id='MainContent_PayrollProcessControl1_PayrollProcessView_PayrollProcessStatusCode_Field']")]
+        private IWebElement Lbl_PayrollStatus { get; set; }
+
+        [FindsBy(How = How.XPath, Using = "*//td[@class='rwWindowContent rwExternalContent rwLoading']")]
+        private IWebElement Win_PDFReportLoad { get; set; }
+
+        [FindsBy(How = How.XPath, Using = "*//td[@class='rwWindowContent rwExternalContent']")]
+        private IWebElement Win_PDFReport { get; set; }
+
+        [FindsBy(How = How.XPath, Using = "*//iframe[contains(@name,'RegisterReportWindow')]")]
+        private IWebElement Frame_PDFReport { get; set; }
+
 
         #endregion
 
@@ -790,6 +829,194 @@ namespace WL.TestAuto
 
             return flag;
         }
+
+        //Method to calculate payroll in Payroll Process screen
+        public bool Fn_Calculate_Payroll_In_Payroll_Process(string processGroup, string runType, string chequeDate)
+        {
+            bool flag = false;
+            WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(30));
+            try
+            {
+                if(Lbl_PayrollStatus.Text == "Calculation Processed")
+                {
+                    Btn_UndoCalc.Click();
+                    wait.Until(drv => Lbl_PayrollStatus.Text == "New");
+
+                    if (Lbl_PayrollStatus.Text != "New")
+                    {
+                        test.Fail("Undo Payroll Failed");
+                        flag = false;
+                    }
+                    else
+                    {
+                        test.Pass("Undo Payroll Successful");
+                        flag = true;
+                    }
+                }
+
+                if(Lbl_PayrollStatus.Text == "New")
+                {
+                    if(processGroup!="")
+                    {
+                        DrpDwn_ProcessGrp.SelectValueFromDropDown(List_AllDrpDwn, processGroup);
+                    }
+                    Thread.Sleep(3000);
+                    if(runType!="")
+                    {
+                        DrpDwn_RunType.SelectValueFromDropDown(List_AllDrpDwn, runType);
+                    }
+                    Thread.Sleep(3000);
+                    if(chequeDate!="")
+                    {
+                        //Txt_ChequeDate.SetText(chequeDate);
+                        Calendar_ChequeDate.SelectDateFromCalendarPopup(chequeDate);
+                    }
+                    Thread.Sleep(2000);
+
+                    Btn_Calculate.Click();
+                    wait.Until(drv => Lbl_PayrollStatus.Text == "Calculation Processed");
+                    flag = true;
+                    test.Pass("Payroll calculated successfully");
+                }
+                else
+                {
+                    test.Fail("Failed to calculate Payroll");
+                    flag = false;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
+                EndTest();
+                //throw new Exception(ex.Message);
+            }
+            return flag;
+        }
+
+        //Get Payroll run status from Payroll Process page
+        public string Fn_GetPayrollRunStatus()
+        {
+            string status = null ;
+            try
+            {
+                if(Lbl_PayrollStatus.Exists(5))
+                {
+                    status = Lbl_PayrollStatus.Text;
+                }
+                else
+                {
+                    test.Fail("Unable to find Payroll run status");
+                }
+            }
+            catch (Exception ex)
+            {
+                test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
+                EndTest();
+                //throw new Exception(ex.Message);
+            }
+            return status;
+        }
+
+        //verify Reports in Payroll process page
+        public bool Fn_Verify_Reports_In_Payroll_ProcessTable(string reportType, string reportName, string reportFormat)
+        {
+            bool flag = false;
+            IWebElement parent;
+            WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(30));
+            try
+            {
+                if(Tab_Reports.Exists(5) && Tab_Reports.Enabled)
+                {
+                    Tab_Reports.Click();
+                    if(reportType.ToLower().Equals("standard"))
+                    {
+                        if(SubMenu_Standard.Exists(5)) SubMenu_Standard.Click();
+
+                        Thread.Sleep(2000);
+                        parent = SubMenu_Standard.FindElement(By.XPath("./parent::*/parent::li"));
+                    }
+                    else
+                    {
+                        if (SubMenu_Custom.Exists(5)) SubMenu_Custom.Click();
+                        Thread.Sleep(2000);
+                        parent = SubMenu_Custom.FindElement(By.XPath("./parent::*/parent::li"));
+                    }
+                    
+                    var reportListUI = parent.FindElements(By.XPath(".//span"));
+
+                    foreach(var report in reportListUI)
+                    {
+                        if(report.Text.ToLower().Equals(reportName.ToLower()))
+                        {
+                            report.Click();
+                            Thread.Sleep(2000);
+                            if (reportFormat != "")
+                            {
+                                report.FindElement(By.XPath("./parent::*/parent::li//span[text()='" + reportFormat + "']")).Click();
+                                Thread.Sleep(2000);
+                            }
+                            else
+                            {
+                                report.FindElement(By.XPath("./parent::*/parent::li//span[text()='PDF']")).Click();
+                                Thread.Sleep(2000);
+                            }
+
+                            if(reportFormat.Equals("Excel"))
+                            {
+                                Thread.Sleep(5000);
+                                SendKeys.SendWait(@"C:\Users\Public\Downloads\"+report+".xlsx");
+                                SendKeys.SendWait(@"{Enter}");
+                                Thread.Sleep(5000);
+                            }
+                            else
+                            {
+                                if(Win_PDFReportLoad.Exists(5))
+                                {
+                                    if(wait.Until(driver => Win_PDFReport.Exists(30)))
+                                    {
+                                        flag = true;
+                                    }
+                                }
+
+                                if(Win_PDFReport.Exists(10))
+                                {
+                                    driver.SwitchTo().Frame(Frame_PDFReport);
+                                    if(driver.FindElements(By.XPath("*//embed[@type='application/pdf']")).Count > 0)
+                                    {
+                                        flag = true;
+                                    }
+                                    else
+                                    {
+                                        flag = false;
+                                    }
+                                    driver.SwitchTo().DefaultContent();
+                                    Btn_CloseX.Click();
+                                }
+                            }
+
+                            break;
+                        }
+                    }
+
+                    
+                }
+                else
+                {
+                    flag = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
+                EndTest();
+                //throw new Exception(ex.Message);
+            }
+            return flag;
+        }
+
+        
+
         #endregion
     }
 }

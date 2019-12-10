@@ -35,7 +35,7 @@ namespace WL.TestAuto
         {
             string val = string.Empty;
             if (System.Configuration.ConfigurationManager.AppSettings[Key] != null)
-                val = ConfigurationManager.AppSettings[Key];
+                val = ConfigurationManager.AppSettings[Key].ToString();
             return val;
         }
 
@@ -454,6 +454,46 @@ namespace WL.TestAuto
             return text.ToString();
         }
 
+        //Select Date from Calendar popup
+        public static bool SelectDateFromCalendarPopup(this IWebElement calendarObj, string date)
+        {
+            bool flag = false;
+            IWebDriver driver = Browsers.GetDriver;
+            string day = date.Split('/')[1];
+            try
+            {
+                if (calendarObj.Exists(10))
+                {
+                    calendarObj.Click();
+                    IWebElement calMain = driver.FindElement(By.XPath("*//table[@class='RadCalendar RadCalendar_Silk']"));
+                    if (calMain.Exists())
+                    {
+                        Thread.Sleep(1000);
+                        IWebElement calTitle = driver.FindElement(By.XPath("*//td[@class='rcTitle']"));
+                        
+                        if (date.Equals(DateTime.Now.ToString("MM/dd/yyyy")))
+                        {
+                            calTitle.Click();
+                            IWebElement btnToday = driver.FindElement(By.XPath("*//input[@type='button' and @value='Today']"));
+                            if (btnToday.Exists(10))
+                            {
+                                btnToday.Click();
+                            }
+                            Thread.Sleep(2000);
+                            calMain.FindElement(By.XPath(".//td/a[text()='"+day+"']")).Click();
+                            flag = true;
 
+                        }
+                        flag = true;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message + " " + ex.StackTrace);
+            }
+
+            return flag;
+        }
     }
 }

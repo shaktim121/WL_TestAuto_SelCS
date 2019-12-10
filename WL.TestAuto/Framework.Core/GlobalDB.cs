@@ -110,7 +110,7 @@ namespace WL.TestAuto
         }
 
         //Function to execute any SQL Query
-        public static DataSet ExecuteSQLQuery(string sqlQuery)
+        public static DataSet ExecuteSQLQuery(string sqlQuery, string cnnString)
         {
             DataSet data = new DataSet();
             SqlDataAdapter adapter;
@@ -121,7 +121,7 @@ namespace WL.TestAuto
 
             try
             {
-                cnn = DBConnect();
+                cnn = new SqlConnection(cnnString);
                 sql = sqlQuery;
                 using (command = cnn.CreateCommand())
                 {
@@ -130,7 +130,6 @@ namespace WL.TestAuto
                     adapter.Fill(data);
                 }
 
-                //dataReader.Close();
                 adapter.Dispose();
                 command.Dispose();
                 cnn.DBDispose();
@@ -180,6 +179,27 @@ namespace WL.TestAuto
             }
 
             return data;
+        }
+
+        //Verify if Stored Proc Exists
+        public static bool IsStoredProcedureExists(string cnn, string storedProc)
+        {
+            bool flag = false;
+
+            try
+            {
+                string chkSql = "select * from sys.objects where type_desc = 'SQL_STORED_PROCEDURE' AND name = '"+storedProc+"'";
+                if(ExecuteSQLQuery(chkSql, cnn).Tables[0].Rows.Count > 0)
+                {
+                    flag = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message + " " + ex.StackTrace);
+            }
+
+            return flag;
         }
     }
 }

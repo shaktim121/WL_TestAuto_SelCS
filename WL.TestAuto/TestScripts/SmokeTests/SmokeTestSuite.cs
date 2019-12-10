@@ -15,24 +15,6 @@ namespace WL.TestAuto
     [TestClass]
     public class SmokeTestSuite : AutomationCore
     {
-        [AssemblyInitialize]
-        public static void StartClass(TestContext context)
-        {
-            #region Report Initialize
-            extent = new ExtentReports();
-            htmlReporter = new ExtentV3HtmlReporter(reportPath);
-            //htmlReporter.LoadConfig(projectDirectory + "\\" + @"Extent-Config.xml");
-            htmlReporter.Config.DocumentTitle = ConfigurationManager.AppSettings["TestName"].ToString() + " Report";
-            htmlReporter.Config.ReportName = ConfigurationManager.AppSettings["TestName"].ToString();
-
-            extent.AddSystemInfo("OS : ", Environment.OSVersion.ToString());
-            extent.AddSystemInfo("Host Name : ", Dns.GetHostName());
-            extent.AddSystemInfo("Browser : ", ConfigurationManager.AppSettings["browser"]);
-
-            extent.AttachReporter(htmlReporter);
-            #endregion
-        }
-
         [TestMethod]
         //1.	Human Resources - Employee Screen
         public void ZHRX_CAN_HR_UI_000100_Verify_Human_Resources_Employee_Screen()
@@ -610,6 +592,8 @@ namespace WL.TestAuto
         //18.	Admin Screen - Code Maintenance
         public void ZHRX_CAN_HR_UI_001800_Admin_Code_Maintenance()
         {
+            string options = data.GetTestData("Admin_Options");
+
             //Change User language after log in
             Pages.Home.Fn_ChangeUserLanguage("English");
 
@@ -617,7 +601,7 @@ namespace WL.TestAuto
             Pages.Home.Fn_SelectUserProfile("Administrator");
 
             //Navigate to Code Maintenance screen in Admin
-            Pages.Admin.Fn_Navigate_Through_Admin("Code Maintenance");
+            Pages.Admin.Fn_Navigate_Through_Admin(options);
 
             //Verify code types listed in drop down Code Table
             Pages.Admin.Fn_Verify_CodeTypes_Dropdown_In_CodeMaint(2);
@@ -688,6 +672,8 @@ namespace WL.TestAuto
         //22.	Admin Screen - Export FTP
         public void ZHRX_CAN_HR_UI_002200_Admin_Export_FTP()
         {
+            string options = data.GetTestData("Admin_Options");
+
             //Change User language after log in
             Pages.Home.Fn_ChangeUserLanguage("English");
 
@@ -705,6 +691,8 @@ namespace WL.TestAuto
         //23.	Admin Screen - Custom Field Config
         public void ZHRX_CAN_HR_UI_002300_Admin_Custom_Field_Config()
         {
+            string options = data.GetTestData("Admin_Options");
+
             //Change User language after log in
             Pages.Home.Fn_ChangeUserLanguage("English");
 
@@ -712,7 +700,7 @@ namespace WL.TestAuto
             Pages.Home.Fn_SelectUserProfile("Administrator");
 
             //Navigate to Custom Field Config screen in Admin
-            Pages.Admin.Fn_Navigate_Through_Admin("Custom Field Config");
+            Pages.Admin.Fn_Navigate_Through_Admin(options);
 
             //Verify records in Custom Field Config table
             Pages.Admin.Fn_Verify_Record_Displayed_In_CustomFieldConfigTable();
@@ -722,6 +710,8 @@ namespace WL.TestAuto
         //24.	Admin Screen - Security
         public void ZHRX_CAN_HR_UI_002400_Admin_Security()
         {
+            string[] options = data.GetTestData("Admin_Options").Split(';');
+            
             //Change User language after log in
             Pages.Home.Fn_ChangeUserLanguage("English");
 
@@ -729,28 +719,29 @@ namespace WL.TestAuto
             Pages.Home.Fn_SelectUserProfile("Administrator");
 
             //Navigate to Security>User Admin screen in Admin
-            Pages.Admin.Fn_Navigate_Through_Admin("Security>User Admin");
+            Pages.Admin.Fn_Navigate_Through_Admin(options[0]);
 
             Thread.Sleep(3000);
 
             //Navigate to Security>Role Editor screen in Admin
-            Pages.Admin.Fn_Navigate_Through_Admin("Security>Role Editor");
+            Pages.Admin.Fn_Navigate_Through_Admin(options[1]);
 
             Thread.Sleep(3000);
 
             //Navigate to Security>Group Editor screen in Admin
-            Pages.Admin.Fn_Navigate_Through_Admin("Security>Group Editor");
+            Pages.Admin.Fn_Navigate_Through_Admin(options[2]);
 
             Thread.Sleep(3000);
 
             //Navigate to Security>Security Categories screen in Admin
-            Pages.Admin.Fn_Navigate_Through_Admin("Security>Security Categories");
+            Pages.Admin.Fn_Navigate_Through_Admin(options[3]);
         }
 
         [TestMethod]
         //25.	Help
         public void ZHRX_CAN_HR_UI_002500_Help()
         {
+            string options = data.GetTestData("Help_Options");
             //Change User language after log in
             Pages.Home.Fn_ChangeUserLanguage("English");
 
@@ -758,7 +749,7 @@ namespace WL.TestAuto
             Pages.Home.Fn_SelectUserProfile("Administrator");
 
             //Verify options under Help
-            Pages.Help.Fn_Verify_Options_Under_Help("PasswordChange;About;Cache Flush");
+            Pages.Help.Fn_Verify_Options_Under_Help(options);
         }
 
         [TestMethod]

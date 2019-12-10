@@ -4,6 +4,7 @@ using OpenQA.Selenium.Support.PageObjects;
 using OpenQA.Selenium.Support.UI;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -171,7 +172,7 @@ namespace WL.TestAuto
             return flag;
         }
 
-        //Verify records in a column in table
+        //Verify records in a column in UI table
         public bool Fn_VerifyRecordsInSingleColumn(IWebElement table, string columnName, string colValueString)
         {
             Boolean flag = false;
@@ -244,6 +245,134 @@ namespace WL.TestAuto
             }
             return flag;
         }
+
+        //Verify Payroll reports from DB Stored Proc
+        //spParams format - param1:val1;param2:val2;etc
+        //dataToVerify format - col1:val1;col2:val2;etc
+        public bool Fn_Verify_ReportsData_In_DataBase(string storedProc, string spParams, string dataToVerify)
+        {
+            bool flag = false;
+            DataSet ds;
+
+            try
+            {
+                ds = GlobalDB.ExecuteStoredProc(storedProc, spParams);
+
+                if (dataToVerify.ToLower().Contains("data exists"))
+                {
+                    if (ds.Tables[0].Rows[0].ItemArray.Length > 0)
+                    {
+                        test.Pass("Data Exists in the Report and is not empty");
+                        flag = true;
+                    }
+                    else
+                    {
+                        test.Fail("No data present or Report is empty");
+                    }
+                }
+                else
+                {
+                    string[] data = dataToVerify.Split(';');
+                    flag = true;
+                    foreach (string dt in data)
+                    {
+                        int cnt = 0;
+
+                        foreach (DataRow dRow in ds.Tables[0].Rows)
+                        {
+                            cnt++;
+                            string aval = Convert.ToString(dRow[dt.Split(':')[0]]);
+                            string eval = dt.Split(':')[1];
+                            if (aval.Equals(eval))
+                            {
+                                test.Pass(eval + " : found in the report DB under column : "+ dt.Split(':')[0]);
+                                break;
+                            }
+
+                            if (cnt == ds.Tables[0].Rows.Count)
+                            {
+                                test.Fail(eval + ": not found in the report DB under column : " + dt.Split(':')[0]);
+                                flag = false;
+                            }
+                        }
+                    }
+                }
+
+            }
+            catch (Exception ex)
+            {
+                test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
+                EndTest();
+                //throw new Exception(ex.Message);
+            }
+            return flag;
+        }
+
+        //Verify report columns in DB through SP
+        //colNames: col1;col2;col3;etc
+        public bool Fn_Verify_ReportHeaders_In_DataBase(string storedProc, string spParams, string colNames)
+        {
+            bool flag = true;
+            DataSet ds;
+            try
+            {
+                ds = GlobalDB.ExecuteStoredProc(storedProc, spParams);
+                foreach(string col in colNames.Split(';'))
+                {
+                    if (ds.Tables[0].Columns.Contains(col))
+                    {
+                        test.Pass("Column Name : " + col + " found in Report DB");
+                    }
+                    else
+                    {
+                        test.Fail("Column Name : " + col + " not found in Report DB");
+                        flag = false;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
+                EndTest();
+                //throw new Exception(ex.Message);
+            }
+            return flag;
+        }
+
+        //Gets all the specified column values from report DB and returns a List
+        public List<string> Fn_Get_ReportsData_From_DataBase(string storedProc, string spParams, string colNames)
+        {
+            List<string> listVals = new List<string>();
+            DataSet ds;
+            string colval;
+            try
+            {
+                ds = GlobalDB.ExecuteStoredProc(storedProc, spParams);
+                foreach (string col in colNames.Split(';'))
+                {   
+                    if (ds.Tables[0].Rows.Count > 0)
+                    {
+                        foreach(DataRow row in ds.Tables[0].Rows)
+                        {
+                            colval = row[col].ToString();
+                            listVals.Add(colval);
+                        }
+                    }
+                    else
+                    {
+                        listVals.Add("");
+                    }   
+                }
+            }
+            catch (Exception ex)
+            {
+                test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
+                EndTest();
+                //throw new Exception(ex.Message);
+            }
+            return listVals;
+        }
+
 
         #endregion
 

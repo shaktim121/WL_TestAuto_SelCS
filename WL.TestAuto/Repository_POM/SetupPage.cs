@@ -77,6 +77,48 @@ namespace WL.TestAuto
         [FindsBy(How = How.XPath, Using = "*//table//div[text()='No records to display.']")]
         private IWebElement Tbl_NoRecord { get; set; }
 
+        [FindsBy(How = How.XPath, Using = "*//span[text()='Add']")]
+        private IWebElement Btn_AddToTable { get; set; }
+
+        [FindsBy(How = How.XPath, Using = "*//span[text()='Country']/parent::*/parent::*//input[@type='text']")]
+        private IWebElement DrpDwn_Country { get; set; }
+
+        [FindsBy(How = How.XPath, Using = "*//span[text()='Pay Frequency']/parent::*/parent::*//input[@type='text']")]
+        private IWebElement DrpDwn_PayFrequency { get; set; }
+
+        [FindsBy(How = How.XPath, Using = "*//span[text()='Process Group']/parent::*/parent::*//input")]
+        private IWebElement Txt_ProcessGroup { get; set; }
+
+        [FindsBy(How = How.XPath, Using = "*//span[text()='English Desc']/parent::*/parent::*//input")]
+        private IWebElement Txt_EnglishDesc { get; set; }
+
+        [FindsBy(How = How.XPath, Using = "*//span[text()='French Desc']/parent::*/parent::*//input")]
+        private IWebElement Txt_FrenchDesc { get; set; }
+
+        [FindsBy(How = How.XPath, Using = "*//span[text()='Year']/parent::*//parent::*//span[@id='ctl00_MainContent_PayrollProcessingGroupControl1_PayrollProcessGroupGrid_ctl00_ctl02_ctl03_PeriodYear_Field']")]
+        private IWebElement Lbl_Year { get; set; }
+
+        [FindsBy(How = How.XPath, Using = "*//span[text()='Period']/parent::*/parent::*//input")]
+        private IWebElement Txt_Period { get; set; }
+
+        [FindsBy(How = How.XPath, Using = "*//span[text()='Start Date']/parent::*/parent::*//input[@class='riTextBox riEnabled']")]
+        private IWebElement Txt_StartDate { get; set; }
+
+        [FindsBy(How = How.XPath, Using = "*//span[text()='Cutoff Date']/parent::*/parent::*//input[@class='riTextBox riDisabled']")]
+        private IWebElement Txt_CutoffDate { get; set; }
+
+        [FindsBy(How = How.XPath, Using = "*//input[@type='button' and @value='Insert']")]
+        private IWebElement Btn_Insert { get; set; }
+
+        [FindsBy(How = How.XPath, Using = "*//input[@type='submit' and @value='Cancel']")]
+        private IWebElement Btn_Cancel { get; set; }
+
+        [FindsBy(How = How.XPath, Using = "*//div[contains(@class,'RadComboBoxDropDown') and contains(@style,'display: block')]")]
+        private IWebElement List_AllDrpDwn { get; set; }
+
+        
+
+
         #endregion
 
         #region Constructor
@@ -700,6 +742,54 @@ namespace WL.TestAuto
                     flag = false;
                 }
 
+            }
+            catch (Exception ex)
+            {
+                test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
+                EndTest();
+                //throw new Exception(ex.Message);
+            }
+            return flag;
+        }
+
+        //Create payroll processing group in Setup screen
+        public bool Fn_Create_Payroll_Processing_Group(string country, string payFrequency, string processGrp, string engDesc, string frenchDesc,string period, string startDate, string cutoffDate)
+        {
+            bool flag = false;
+            try
+            {
+                Btn_AddToTable.Click();
+                DrpDwn_Country.SelectValueFromDropDown(List_AllDrpDwn, country);
+                Thread.Sleep(2000);
+                DrpDwn_PayFrequency.SelectValueFromDropDown(List_AllDrpDwn, payFrequency);
+                Thread.Sleep(2000);
+                Txt_ProcessGroup.SetText(processGrp);
+                Txt_EnglishDesc.SetText(engDesc);
+                Txt_FrenchDesc.SetText(frenchDesc);
+                if(Lbl_Year.Text == DateTime.Now.Year.ToString())
+                {
+                    flag = true;
+                }
+                Txt_Period.SetText(period);
+                Txt_StartDate.SetText(startDate);
+                Txt_CutoffDate.Click();
+                Thread.Sleep(5000);
+                if(Txt_CutoffDate.GetAttribute("value") == cutoffDate) flag = true;
+                else flag = false;
+
+                Btn_Insert.Click();
+                Thread.Sleep(5000);
+                if (Tbl_PayProcessGroup.FindElements(By.XPath("./tbody/tr//td[text()='" + processGrp + "']")).Count > 0) flag = true;
+                else flag = false;
+
+                if(flag)
+                {
+                    test.Pass("Payroll Process Group: "+processGrp+" created Successfully");
+                }
+                else
+                {
+                    test.Fail("Failed to create Payroll Process Group: "+processGrp);
+                }
             }
             catch (Exception ex)
             {

@@ -13,6 +13,7 @@ using System.Data;
 
 namespace WL.TestAuto
 {
+    [TestClass]
     public class AutomationCore
     {   
         // This will get the current WORKING directory (i.e. \bin\Debug)
@@ -26,7 +27,7 @@ namespace WL.TestAuto
         private static readonly string projectPath = new Uri(actualPath).LocalPath;*/
 
         //Report initialize
-        private static readonly string fileName = ConfigurationManager.AppSettings["TestName"] + "_Report_" + Utilities.GetTimeStamp(DateTime.Now);
+        private static readonly string fileName = "TestName".AppSettings() + "_Report_" + Utilities.GetTimeStamp(DateTime.Now);
         private static readonly string fileNameExt = fileName + ".html";
         public static readonly string reportPath = projectDirectory + "\\TestReports\\" + fileName + "\\" + fileNameExt;
 
@@ -75,10 +76,28 @@ namespace WL.TestAuto
             extent.Flush();
             Thread.Sleep(5000);
         }
-        
+
+        [AssemblyInitialize]
+        public static void StartClass(TestContext context)
+        {
+            #region Report Initialize
+            extent = new ExtentReports();
+            htmlReporter = new ExtentV3HtmlReporter(reportPath);
+            //htmlReporter.LoadConfig(projectDirectory + "\\" + @"Extent-Config.xml");
+            htmlReporter.Config.DocumentTitle = "Worklinks Automation - " + "TestName".AppSettings() + " Report";
+            htmlReporter.Config.ReportName = "TestName".AppSettings();
+
+            extent.AddSystemInfo("OS : ", Environment.OSVersion.ToString());
+            extent.AddSystemInfo("Host Name : ", Dns.GetHostName());
+            extent.AddSystemInfo("Browser : ", "browser".AppSettings());
+            extent.AddSystemInfo("User : ", "user".AppSettings());
+
+            extent.AttachReporter(htmlReporter);
+            #endregion
+        }
 
         [AssemblyCleanup]
-        public void EndClass()
+        public static void EndClass()
         {
             
         }
