@@ -36,6 +36,7 @@ namespace WL.TestAuto
             else
             {
                 test.Fail("Failed to verify all fields in Employee screen");
+                Assert.Fail();
             }
 
             //Search Employee records present
@@ -46,15 +47,14 @@ namespace WL.TestAuto
             else
             {
                 test.Fail("Failed to verify Employee record displayed");
+                Assert.Fail();
             }
         }
 
         [TestMethod]
         //2.	HR Screen - Open Screens in English **reports
         public void ZHRX_CAN_HR_UI_000200_Verify_Human_Resources_HR_Screen_Open_Screens_In_English()
-        {
-            
-            
+        {   
             //Change User language after log in
             Pages.Home.Fn_ChangeUserLanguage("English");
 
@@ -67,36 +67,42 @@ namespace WL.TestAuto
             //Navigate to Add Wizard Scren in Human Resources
             Pages.HR.Fn_NavigateThroughHumanResources("Add Wizard");
 
-            //Navigate to Reports Screen in Human Resources
-            if (Pages.HR.Fn_NavigateThroughHumanResources("Reports-Anniversary Listing"))
+            string reportNames = "Phone List;Birthday List;Name and Address Listing;Anniversary Listing";
+            foreach (string report in reportNames.Split(';'))
             {
-                test.Log(Status.Pass, "Navigated to Reports-Anniversary Listing Screen");
-            }
-            else
-            {
-                test.Fail("Failed to navigate to Reports-Anniversary Listing Screen");
-            }
+                //Navigate to Reports Screen in Human Resources
+                if (Pages.HR.Fn_NavigateThroughHumanResources("Reports-"+report))
+                {
+                    test.Log(Status.Pass, "Navigated to Reports-" + report + " Screen");
+                }
+                else
+                {
+                    test.Fail("Failed to navigate to Reports-" + report + " Screen");
+                }
 
-            //Verify Anniversary Listing report
-            if (Pages.HR.Fn_ViewAndVerify_HR_ReportDisplayedOnScreen("Anniversary Listing"))
-            {
-                test.Log(Status.Pass, "View and verify PDF report Aniversary Listing successful");
-            }
-            else
-            {
-                test.Fail("Failed to verify PDF report displayed : Anniversary Listing");
-            }
+                //Verify report
+                if (Pages.HR.Fn_ViewAndVerify_HR_ReportDisplayedOnScreen(report))
+                {
+                    test.Log(Status.Pass, "View and verify PDF report " + report + " successful");
+                }
+                else
+                {
+                    test.Fail("Failed to verify PDF report displayed : "+report);
+                }
 
-            //Navigate to Home
-            if (Pages.Home.Fn_NavigateToHomeScreen())
-            {
-                test.Log(Status.Pass, "Navigated to Home Screen");
+                //Navigate to Home
+                if (Pages.Home.Fn_NavigateToHomeScreen())
+                {
+                    test.Log(Status.Pass, "Navigated to Home Screen");
+                }
+                else
+                {
+                    test.Fail("Failed to navigate to Home screen");
+                }
             }
-            else
-            {
-                test.Fail("Failed to navigate to Home screen");
-            }
-
+            
+            
+/*
             //Navigate to Reports Screen in Human Resources
             if (Pages.HR.Fn_NavigateThroughHumanResources("Reports-Employee Listing"))
             {
@@ -105,6 +111,7 @@ namespace WL.TestAuto
             else
             {
                 test.Fail("Failed to navigate to Reports-Employee Listing Screen");
+                Assert.Fail();
             }
 
             //Verify Employee Listing report
@@ -115,6 +122,7 @@ namespace WL.TestAuto
             else
             {
                 test.Fail("Failed to verify PDF report displayed : Employee Listing");
+                Assert.Fail();
             }
 
             //Navigate to Home
@@ -125,6 +133,7 @@ namespace WL.TestAuto
             else
             {
                 test.Fail("Failed to navigate to Home screen");
+                Assert.Fail();
             }
 
             //Navigate to Reports Screen in Human Resources
@@ -135,7 +144,8 @@ namespace WL.TestAuto
             else
             {
                 test.Fail("Failed to navigate to Reports-Paycode Report Screen");
-            }
+                Assert.Fail();
+            }*/
         }
 
         [TestMethod]
@@ -265,6 +275,7 @@ namespace WL.TestAuto
             else
             {
                 test.Fail("Failed to navigate to Employee Screen under Payroll");
+                Assert.Fail();
             }
 
             //Verify all fields in Employee Screen
@@ -278,6 +289,7 @@ namespace WL.TestAuto
             else
             {
                 test.Fail("Failed to verify Employee record displayed");
+                Assert.Fail();
             }
         }
 
@@ -299,10 +311,14 @@ namespace WL.TestAuto
             else
             {
                 test.Fail("Failed to navigate to Batch Screen under Payroll");
+                Assert.Fail();
             }
 
             //Verify all fields in Batch Screen
-            Pages.Payroll.Fn_Verify_Fields_In_Payroll_Screens("Batch Source;Description", "Clear;Search", "Process Group;Run Type;Approval Status", "Processed", "Add;Delete", "", "");
+            if(!Pages.Payroll.Fn_Verify_Fields_In_Payroll_Screens("Batch Source;Description", "Clear;Search", "Process Group;Run Type;Approval Status", "Processed", "Add;Delete", "", ""))
+            {
+                Assert.Fail();
+            }
         }
 
         [TestMethod]
@@ -322,10 +338,16 @@ namespace WL.TestAuto
             Browsers.GetDriver.SwitchTo().Frame("payrollException");
 
             //Verify all fields in Payroll Screen
-            Pages.Payroll.Fn_Verify_Fields_In_Payroll_Screens("Minimum Work Hour;Maximum Lunch Minute;Start Date;End Date;Employee Number;Last Name", "Search;Clear", "", "", "", "Employee Number;Last Name;First Name;Date;Payable Hours;Non-Payable Hours;Total Payable Hours", "");
+            if(!Pages.Payroll.Fn_Verify_Fields_In_Payroll_Screens("Minimum Work Hour;Maximum Lunch Minute;Start Date;End Date;Employee Number;Last Name", "Search;Clear", "", "", "", "Employee Number;Last Name;First Name;Date;Payable Hours;Non-Payable Hours;Total Payable Hours", ""))
+            {
+                Assert.Fail();
+            }
 
             //Verify records displayed in Payroll Transaction
-            Pages.Payroll.Fn_Verify_Record_Displayed_In_PayrollTransactionTable();
+            if(!Pages.Payroll.Fn_Verify_Record_Displayed_In_PayrollTransactionTable())
+            {
+                Assert.Fail();
+            }
 
             //To get control on the Iframe window of the page
             Browsers.GetDriver.SwitchTo().DefaultContent();
@@ -346,11 +368,14 @@ namespace WL.TestAuto
             Pages.Payroll.Fn_NavigateThroughPayroll("Payroll Process");
 
             //Verify all fields in Payroll Screen
-            Pages.Payroll.Fn_Verify_Fields_In_Payroll_Screens("", "", "Process Group;Run Type", "", "Calculate;Undo Calc;Post;Reports;Details;Add;Delete;Export", "", "Status;Cheque Date;Start Date;Period End Date;Last Calc Time;Last Calc User");
+            if(!Pages.Payroll.Fn_Verify_Fields_In_Payroll_Screens("", "", "Process Group;Run Type", "", "Calculate;Undo Calc;Post;Reports;Details;Add;Delete;Export", "", "Status;Cheque Date;Start Date;Period End Date;Last Calc Time;Last Calc User"))
+            {
+                Assert.Fail();
+            }
         }
 
         [TestMethod]
-        //8.	Payroll Screen - Payments
+        //8.	Payroll Screen - Payments //Fn_Verify_ReportsDisplayed_In_Payroll_PaymentsTable - need to be fixed
         public void ZHRX_CAN_HR_UI_000800_Payroll_Screen_Payments()
         {
             //Change User language after log in
@@ -363,10 +388,16 @@ namespace WL.TestAuto
             Pages.Payroll.Fn_NavigateThroughPayroll("Payments");
 
             //Verify all fields in Payroll Screen
-            Pages.Payroll.Fn_Verify_Fields_In_Payroll_Screens("", "Clear;Search", "Process Group;Run Type", "", "Mass Payslip File;Mass Payslip Print;Reports", "", "");
+            if(!Pages.Payroll.Fn_Verify_Fields_In_Payroll_Screens("", "Clear;Search", "Process Group;Run Type", "", "Mass Payslip File;Mass Payslip Print;Reports", "", ""))
+            {
+                Assert.Fail();
+            }
 
             //Verify reports present in Payments UI
-            Pages.Payroll.Fn_Verify_Reports_In_Payroll_PaymentsTable("Payroll Funding Jamaica;Register Detail;Register Summary;Changes;Compensation List;Current Vs Prior;Garnishment;Pay Exception;Jamaica Deduction Summary;Detail Earn/Ben/Dedn;GL Employee Details");
+            if(!Pages.Payroll.Fn_Verify_ReportsDisplayed_In_Payroll_PaymentsTable("Payroll Funding Jamaica;Register Detail;Register Summary;Changes;Compensation List;Current Vs Prior;Garnishment;Pay Exception;Jamaica Deduction Summary;Detail Earn/Ben/Dedn;GL Employee Details"))
+            {
+                Assert.Fail();
+            }
         }
 
         [TestMethod]
@@ -380,17 +411,13 @@ namespace WL.TestAuto
             Pages.Home.Fn_SelectUserProfile("Administrator");
 
             //Navigate to Import screen in Payroll
-            if (Pages.Payroll.Fn_NavigateThroughPayroll("Import"))
-            {
-                test.Log(Status.Pass, "Navigated to Import Screen under Payroll");
-            }
-            else
-            {
-                test.Fail("Failed to navigate to Import Screen under Payroll");
-            }
+            Pages.Payroll.Fn_NavigateThroughPayroll("Import");
 
             //verify Import Types in dropdown
-            Pages.Payroll.Fn_Verify_ImportTypes_In_Payroll_Import("Address Import;Advantage Time File Import;Banking Import;Employee Import;Employment Import;Position Import;Standard paycode Import;Standard Payroll Adjustment Import;Standard Payroll Bonus Import;Standard Payroll Import;Statutory Deduction Import;Year End Adjustment Import;Year End Adjustment Paycode Import");
+            if(!Pages.Payroll.Fn_Verify_ImportTypesDisplayed_In_Payroll_Import("Address Import;Advantage Time File Import;Banking Import;Employee Import;Employment Import;Position Import;Standard paycode Import;Standard Payroll Adjustment Import;Standard Payroll Bonus Import;Standard Payroll Import;Statutory Deduction Import;Year End Adjustment Import;Year End Adjustment Paycode Import"))
+            {
+                Assert.Fail();
+            }
         }
 
         [TestMethod]
@@ -404,7 +431,10 @@ namespace WL.TestAuto
             Pages.Home.Fn_SelectUserProfile("Administrator");
 
             //Export Report
-            Pages.Payroll.Fn_Verify_And_Navigate_To_Reports_In_Payroll("Wage Type Catalog>Excel");
+            if(!Pages.Payroll.Fn_Verify_And_Navigate_To_Reports_In_Payroll("Wage Type Catalog>Excel"))
+            {
+                Assert.Fail();
+            }
         }
 
         [TestMethod]
@@ -481,10 +511,14 @@ namespace WL.TestAuto
             else
             {
                 test.Fail("Failed to verify all fields in Vendor screen under Setup");
+                Assert.Fail();
             }
 
             //Verify records exist in Vendor Table
-            Pages.Setup.Fn_Verify_Record_Displayed_In_VendorTable();
+            if(!Pages.Setup.Fn_Verify_Record_Displayed_In_VendorTable())
+            {
+                Assert.Fail();
+            }
         }
 
         [TestMethod]
@@ -508,10 +542,14 @@ namespace WL.TestAuto
             else
             {
                 test.Fail("Failed to verify all fields in Payroll Processing Group screen under Setup");
+                Assert.Fail();
             }
 
             //Verify records exist in Payroll Processing Group Table
-            Pages.Setup.Fn_Verify_Record_Displayed_In_PayProcessGroupTable();
+            if(!Pages.Setup.Fn_Verify_Record_Displayed_In_PayProcessGroupTable())
+            {
+                Assert.Fail();
+            }
         }
 
         [TestMethod]
@@ -525,10 +563,16 @@ namespace WL.TestAuto
             Pages.Home.Fn_SelectUserProfile("Administrator");
 
             //Navigate to Organizational Unit Level screen in Setup
-            Pages.Setup.Fn_Navigate_Through_Setup("Organizational Unit Level");
+            if(!Pages.Setup.Fn_Navigate_Through_Setup("Organization Unit Level"))
+            {
+                Assert.Fail("Failed to navigate to Admin Screen");
+            }
 
             //Verify records in table column
-            Pages.Setup.Fn_Verify_Records_Of_Single_Column_In_OUL("English Desc.", "Company;Legal Entity;Business Unit;Department");
+            if(!Pages.Setup.Fn_Verify_Records_Of_Single_Column_In_OUL("English Desc.", "Company;Legal Entity;Business Unit;Department"))
+            {
+                Assert.Fail();
+            }
         }
 
         [TestMethod]
@@ -545,7 +589,10 @@ namespace WL.TestAuto
             Pages.Setup.Fn_Navigate_Through_Setup("Wizard Template");
 
             //Verify records exist in Wizard Template Table
-            Pages.Setup.Fn_Verify_Record_Displayed_In_WizardTable();
+            if(!Pages.Setup.Fn_Verify_Record_Displayed_In_WizardTable())
+            {
+                Assert.Fail();
+            }
         }
 
         [TestMethod]
@@ -582,10 +629,14 @@ namespace WL.TestAuto
             else
             {
                 test.Fail("Failed to verify all fields in Paycode>Paycode Maintenance screen under Setup");
+                Assert.Fail();
             }
 
             //Verify records exist in Paycode Maintenance Table
-            Pages.Setup.Fn_Verify_Record_Displayed_In_PaycodeMaintTable();
+            if(!Pages.Setup.Fn_Verify_Record_Displayed_In_PaycodeMaintTable())
+            {
+                Assert.Fail();
+            }
         }
 
         [TestMethod]
@@ -604,7 +655,10 @@ namespace WL.TestAuto
             Pages.Admin.Fn_Navigate_Through_Admin(options);
 
             //Verify code types listed in drop down Code Table
-            Pages.Admin.Fn_Verify_CodeTypes_Dropdown_In_CodeMaint(2);
+            if(!Pages.Admin.Fn_Verify_CodeTypes_Dropdown_In_CodeMaint(2))
+            {
+                Assert.Fail();
+            }
         }
 
         [TestMethod]
@@ -621,7 +675,10 @@ namespace WL.TestAuto
             Pages.Admin.Fn_Navigate_Through_Admin("Code System");
 
             //Verify records in Code System table
-            Pages.Admin.Fn_Verify_Record_Displayed_In_CodeSystemTable();
+            if(!Pages.Admin.Fn_Verify_Record_Displayed_In_CodeSystemTable())
+            {
+                Assert.Fail();
+            }
         }
 
         [TestMethod]
@@ -638,7 +695,10 @@ namespace WL.TestAuto
             Pages.Admin.Fn_Navigate_Through_Admin("Mandatory Field Editor");
 
             //Verify records in Mandatory Field Editor table
-            Pages.Admin.Fn_Verify_Record_Displayed_In_FieldEditorTable();
+            if(!Pages.Admin.Fn_Verify_Record_Displayed_In_FieldEditorTable())
+            {
+                Assert.Fail();
+            }
         }
 
         [TestMethod]
@@ -672,19 +732,24 @@ namespace WL.TestAuto
         //22.	Admin Screen - Export FTP
         public void ZHRX_CAN_HR_UI_002200_Admin_Export_FTP()
         {
-            string options = data.GetTestData("Admin_Options");
+            string userLang = data.GetTestData("User_Language");
+            string userProfile = data.GetTestData("User_Profile");
+            string screen = data.GetTestData("Admin_Screen");
 
             //Change User language after log in
-            Pages.Home.Fn_ChangeUserLanguage("English");
+            Pages.Home.Fn_ChangeUserLanguage(userLang);
 
             //Select User Profile
-            Pages.Home.Fn_SelectUserProfile("Administrator");
+            Pages.Home.Fn_SelectUserProfile(userProfile);
 
             //Navigate to Export FTP screen in Admin
-            Pages.Admin.Fn_Navigate_Through_Admin("Export FTP");
+            Pages.Admin.Fn_Navigate_Through_Admin(screen);
 
             //Verify records in Export FTP table
-            Pages.Admin.Fn_Verify_Record_Displayed_In_ExportFTPTable();
+            if(!Pages.Admin.Fn_Verify_Record_Displayed_In_ExportFTPTable())
+            {
+                Assert.Fail();
+            }
         }
 
         [TestMethod]
@@ -703,7 +768,10 @@ namespace WL.TestAuto
             Pages.Admin.Fn_Navigate_Through_Admin(options);
 
             //Verify records in Custom Field Config table
-            Pages.Admin.Fn_Verify_Record_Displayed_In_CustomFieldConfigTable();
+            if(!Pages.Admin.Fn_Verify_Record_Displayed_In_CustomFieldConfigTable())
+            {
+                Assert.Fail();
+            }
         }
 
         [TestMethod]
@@ -749,31 +817,51 @@ namespace WL.TestAuto
             Pages.Home.Fn_SelectUserProfile("Administrator");
 
             //Verify options under Help
-            Pages.Help.Fn_Verify_Options_Under_Help(options);
+            if(!Pages.Help.Fn_Verify_Options_Under_Help(options))
+            {
+                Assert.Fail();
+            }
         }
+
+        //************************ Employee Hire Edit and Terminate ************************//
+        #region Employee Hire Edit and Terminate
+
+        private string EmpNum = "12122"; // data.GetTestData("Emp_Number");
+        private string FirstName = "Derek"; //data.GetTestData("First_Name");
+        private string LastName = "Shepard"; // data.GetTestData("Last_Name");
+        private string SIN = "999999997"; //data.GetTestData("SIN");
 
         [TestMethod]
         //26.	HR Screen - Hire
         public void ZHRX_CAN_NEW_HIRE_001000_Hire_an_Employee()
         {
-            string EmpNum = "99999";
-            string FirstName = "Derek";
-            string LastName = "Shepard";
-            string SIN = "999999997";
+            // data.GetTestData("Emp_Number");
+            //data.GetTestData("First_Name");
+            // data.GetTestData("Last_Name");
+            //data.GetTestData("SIN");
+
+            string lang = data.GetTestData("User_Language");
+            string userProfile = data.GetTestData("User_Profile");
+            string hrScreen1 = data.GetTestData("HR_Screen1");
+            string hrScreen2 = data.GetTestData("HR_Screen2");
+            string payScreen = data.GetTestData("Payroll_Screen");
+
+            string empState = data.GetTestData("Emp_State");
+            string empDetails = data.GetTestData("Verify_Emp_Details");
 
             string suffix = DateTime.Now.ToString("HHmm");
             //EmpNum = (Convert.ToInt32(EmpNum) + 1).ToString();
-            FirstName = FirstName + suffix;
-            LastName = LastName + suffix;
+            FirstName += suffix;
+            LastName += suffix;
 
             //Change User language after log in
-            Pages.Home.Fn_ChangeUserLanguage("English");
+            Pages.Home.Fn_ChangeUserLanguage(lang);
 
             //Select User Profile
-            Pages.Home.Fn_SelectUserProfile("Administrator");
+            Pages.Home.Fn_SelectUserProfile(userProfile);
 
             //Navigate to Employee to search employee
-            Pages.HR.Fn_NavigateThroughHumanResources("Employee");
+            Pages.HR.Fn_NavigateThroughHumanResources(hrScreen1);
             if(Pages.HR.Fn_Search_Employee_Exists(EmpNum, FirstName, LastName, "", false))
             {
                 test.Pass("Employee Does not Exist");
@@ -785,16 +873,19 @@ namespace WL.TestAuto
             }
 
             //Navigate to Add Wizard Scren in Human Resources
-            Pages.HR.Fn_NavigateThroughHumanResources("Add Wizard");
+            Pages.HR.Fn_NavigateThroughHumanResources(hrScreen2);
             Pages.HR.Fn_Hire_Employee(EmpNum, FirstName, LastName, SIN);
 
             Thread.Sleep(5000);
 
             //Verify Employee hired Successfully
-            Pages.Payroll.Fn_NavigateThroughPayroll("Employee");
+            Pages.Payroll.Fn_NavigateThroughPayroll(payScreen);
             Pages.HR.Fn_Search_Employee_Exists(EmpNum, FirstName, LastName, "", true);
 
-            Pages.Payroll.Fn_Verify_Employee_Details_In_Payroll_Position("Active", "Annual Salary-60,000.00");
+            if(!Pages.Payroll.Fn_Verify_Employee_Details_In_Payroll_Position(empState, empDetails))
+            {
+                Assert.Fail();
+            }
 
         }
 
@@ -802,10 +893,10 @@ namespace WL.TestAuto
         //27.	HR Screen - Edit
         public void ZHRX_CAN_NEW_HIRE_001100_Edit_an_Employee_record()
         {
-            string EmpNum = "99999";
-            string FirstName = "Derek1443";
-            string LastName = "Shepard1443";
-            string SIN = "999999997";
+            /*string EmpNum = "12121";
+            string FirstName = "Derek1251";
+            string LastName = "Shepard1251";
+            string SIN = "999999997";*/
 
             //Change User language after log in
             Pages.Home.Fn_ChangeUserLanguage("English");
@@ -824,11 +915,14 @@ namespace WL.TestAuto
             }
 
             //Create method for Personal, Address and Phones in Biographical
-            Pages.HR.Fn_Edit_Biographical_Details_Of_Employee(EmpNum, "Ms.", "Sandra", "Robert", "French", "1/1/1985", "Married", "Margaret", "Sandra", "Female", "Canada", "715259628", "Non-Smoker", "Aboriginal Person;Person with Disability;Senior Citizen;Visible Minority;Woman", "Bilingual", "Canadian", "789", "789", "Home Address", "Address Line 1", "Address Line 2", "A1A 1A1", "", "", "", "Work", "9990009999");
+            if(!Pages.HR.Fn_Edit_Biographical_Details_Of_Employee(EmpNum, "Ms.", "Sandra", "Robert", "French", "1/1/1985", "Married", "Margaret", "Sandra", "Female", "Canada", "422006213", "Non-Smoker", "Aboriginal Person;Person with Disability;Senior Citizen;Visible Minority;Woman", "Bilingual", "Canadian", "789", "789", "Home Address", "Address Line 1", "Address Line 2", "A1A 1A1", "", "", "", "Work", "9990009999"))
+            {
+                Assert.Fail();
+            }
 
             FirstName = "Sandra";
             LastName = "Robert";
-            SIN = "715259628";
+            SIN = "422006213";
 
             //Search Employee record
             if (!Pages.HR.Fn_Search_Employee_Exists(EmpNum, FirstName, LastName, "", true))
@@ -848,9 +942,9 @@ namespace WL.TestAuto
         //28.	HR Screen - Terminate Employee
         public void ZHRX_CAN_NEW_HIRE_001200_Terminate_an_Employee_record()
         {
-            string EmpNum = "99998";
-            string FirstName = "Derek2028";
-            string LastName = "Shepard2028";
+            string EmpNum = "12121";
+            string FirstName = "Sandra";
+            string LastName = "Robert";
             string SIN = "999999997";
 
             //Change User language after log in
@@ -883,10 +977,13 @@ namespace WL.TestAuto
             else
             {
                 test.Fail("Failed to terminate Employee : " + FirstName + " " + LastName);
+                Assert.Fail();
             }
 
 
         }
+
+        #endregion
 
 
     }

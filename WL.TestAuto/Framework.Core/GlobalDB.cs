@@ -13,21 +13,20 @@ namespace WL.TestAuto
 {
     public static class GlobalDB
     {
-        public static string dataSource = "dataSource".AppSettings();
-        public static string dbName = "dbName".AppSettings();
-        public static string dbUser = "dbUser".AppSettings();
-        public static string dbPwd = "dbPwd".AppSettings();
+        public static string dataSource = string.Empty;
+        public static string dbName = string.Empty;
+        public static string dbUser = string.Empty;
+        public static string dbPwd = string.Empty;
+        public static string connectionString = string.Empty;
 
         //Connect to Automation DB and Return the SQLConnection
-        public static SqlConnection DBConnect()
-        {
-            string connectionString;
+        public static SqlConnection DBConnect(string dataSource, string dbName, string dbUser, string dbPwd, bool winAuth)
+        {   
             SqlConnection cnn;
-            //connectionString = @"Data Source=cowlqa01.island.local;Initial Catalog=testautomationio;Integrated Security=SSPI;User ID=ISLAND\sahus;Password=wyPDw*2678*y";
-            connectionString = @"Data Source="+dataSource+";Initial Catalog="+dbName+";Integrated Security=SSPI;User ID="+dbUser+";Password="+dbPwd+"";
-            cnn = new SqlConnection(connectionString);
             try
             {
+                connectionString = CreateConnectionString(dataSource, dbName, dbUser, dbPwd, winAuth);
+                cnn = new SqlConnection(connectionString);
                 cnn.Open();
             }
             catch (Exception ex)
@@ -58,14 +57,16 @@ namespace WL.TestAuto
             SqlDataAdapter adapter;
             SqlConnection cnn;
             SqlCommand command;
-            SqlDataReader dataReader;
-
             string sql;
+            dataSource = "dataSource".AppSettings();
+            dbName = "dbName".AppSettings();
+            dbUser = "dbUser".AppSettings();
+            dbPwd = "dbPwd".AppSettings();
 
             try
             {
-                cnn = DBConnect();
-                sql = "select * from [" + dbName + "].[dbo].[" + testName + "];";
+                cnn = DBConnect(dataSource, dbName, dbUser, dbPwd, true);
+                sql = "select * from [" + "dbName".AppSettings() + "].[dbo].[" + testName + "];";
                 //sql = "select TOP (1) ["+key_name+"] from ["+dbName+"].[dbo].["+testName+"];";
                 using (command = cnn.CreateCommand())
                 {
@@ -109,8 +110,30 @@ namespace WL.TestAuto
             return sval;
         }
 
+        //Function to create sql connection
+        public static string CreateConnectionString(string DBSrv, string DB, string user, string pwd, bool winAuth)
+        {
+            string cnn;
+            try
+            {
+                if (winAuth)
+                {
+                    cnn = @"Data Source=" + DBSrv + ";Initial Catalog=" + DB + ";Integrated Security=SSPI;";
+                }
+                else
+                {
+                    cnn = @"Data Source=" + DBSrv + ";Initial Catalog=" + DB + ";User ID=" + user + ";Password=" + pwd + "";
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message + " " + ex.StackTrace);
+            }
+            return cnn;
+        }
+        
         //Function to execute any SQL Query
-        public static DataSet ExecuteSQLQuery(string sqlQuery, string cnnString)
+        public static DataSet ExecuteSQLQuery(string sqlQuery, string connectionString)
         {
             DataSet data = new DataSet();
             SqlDataAdapter adapter;
@@ -121,7 +144,7 @@ namespace WL.TestAuto
 
             try
             {
-                cnn = new SqlConnection(cnnString);
+                cnn = new SqlConnection(connectionString);
                 sql = sqlQuery;
                 using (command = cnn.CreateCommand())
                 {
@@ -143,7 +166,7 @@ namespace WL.TestAuto
 
         //Execute StoredProc
         //DataSet ds = GlobalDB.ExecuteStoredProc("EmployeeAnniversaryListing_report", "@databaseName:WLAT;@securityRoleId:1001;@securityUserId:58;@languageCode:EN");
-        public static DataSet ExecuteStoredProc(string storedProc, string parameters)
+        public static DataSet ExecuteStoredProc(string storedProc, string parameters, string connectionString)
         {
             DataSet data = new DataSet();
             SqlDataAdapter adapter;
@@ -151,14 +174,8 @@ namespace WL.TestAuto
             SqlCommand command;
             string[] parameter = parameters.Split(';') ;
 
-            string dataSource = "dataSource".AppSettings();
-            string dbName = "dbMainName".AppSettings();
-            string dbUser = "dbUser".AppSettings();
-            string dbPwd = "dbPwd".AppSettings();
-
             try
             {
-                string connectionString = @"Data Source=" + dataSource + ";Initial Catalog=" + dbName + ";Integrated Security=SSPI;User ID=" + dbUser + ";Password=" + dbPwd + "";
                 cnn = new SqlConnection(connectionString);
                 command = new SqlCommand(storedProc, cnn);
                 command.CommandType = CommandType.StoredProcedure;

@@ -204,7 +204,11 @@ namespace WL.TestAuto
                 //throw new Exception(ex.Message);
             }
             if (flag) test.Pass("Navigated to " + Option + " Screen under Admin");
-            else test.Fail("Failed to navigate to " + Option + "Screen under Admin");
+            else
+            {
+                test.Fail("Failed to navigate to " + Option + "Screen under Admin");
+                GenericMethods.CaptureScreenshot();
+            }
 
             return flag;
         }
@@ -389,6 +393,7 @@ namespace WL.TestAuto
             catch (Exception ex)
             {
                 test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
+                GenericMethods.CaptureScreenshot();
                 EndTest();
                 //throw new Exception(ex.Message);
             }
@@ -414,10 +419,12 @@ namespace WL.TestAuto
                         if(listTags.Count >= num)
                         {
                             test.Pass("Code Table have Code types listed");
+                            flag = true;
                         }
                         else
                         {
                             test.Fail("Code table have less than "+num+" or no value in it");
+                            GenericMethods.CaptureScreenshot();
                         }
                         Drpdwn_CodeTable.Click();
                     }
@@ -425,11 +432,13 @@ namespace WL.TestAuto
                 else
                 {
                     test.Fail("Code Table drop down does not exist");
+                    GenericMethods.CaptureScreenshot();
                 }
             }
             catch (Exception ex)
             {
                 test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
+                GenericMethods.CaptureScreenshot();
                 EndTest();
                 //throw new Exception(ex.Message);
             }
@@ -453,18 +462,21 @@ namespace WL.TestAuto
                     else
                     {
                         test.Fail("No records present in table Code System");
+                        GenericMethods.CaptureScreenshot();
                         flag = false;
                     }
                 }
                 else
                 {
                     test.Fail("Unable to find table Code System");
+                    GenericMethods.CaptureScreenshot();
                     flag = false;
                 }
             }
             catch (Exception ex)
             {
                 test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
+                GenericMethods.CaptureScreenshot();
                 EndTest();
                 //throw new Exception(ex.Message);
             }
@@ -488,18 +500,21 @@ namespace WL.TestAuto
                     else
                     {
                         test.Fail("No records present in table Mandatory Field Editor");
+                        GenericMethods.CaptureScreenshot();
                         flag = false;
                     }
                 }
                 else
                 {
                     test.Fail("Unable to find table Mandatory Field Editor");
+                    GenericMethods.CaptureScreenshot();
                     flag = false;
                 }
             }
             catch (Exception ex)
             {
                 test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
+                GenericMethods.CaptureScreenshot();
                 EndTest();
                 //throw new Exception(ex.Message);
             }
@@ -526,18 +541,21 @@ namespace WL.TestAuto
                     else
                     {
                         test.Fail("No records present in table Language Editor");
+                        GenericMethods.CaptureScreenshot();
                         flag = false;
                     }
                 }
                 else
                 {
                     test.Fail("Unable to find table Language Editor");
+                    GenericMethods.CaptureScreenshot();
                     flag = false;
                 }
             }
             catch (Exception ex)
             {
                 test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
+                GenericMethods.CaptureScreenshot();
                 EndTest();
                 //throw new Exception(ex.Message);
             }
@@ -561,18 +579,21 @@ namespace WL.TestAuto
                     else
                     {
                         test.Fail("No records present in table Export FTP");
+                        GenericMethods.CaptureScreenshot();
                         flag = false;
                     }
                 }
                 else
                 {
                     test.Fail("Unable to find table Export FTP");
+                    GenericMethods.CaptureScreenshot();
                     flag = false;
                 }
             }
             catch (Exception ex)
             {
                 test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
+                GenericMethods.CaptureScreenshot();
                 EndTest();
                 //throw new Exception(ex.Message);
             }
@@ -596,18 +617,21 @@ namespace WL.TestAuto
                     else
                     {
                         test.Fail("No records present in table Custom Field Config");
+                        GenericMethods.CaptureScreenshot();
                         flag = false;
                     }
                 }
                 else
                 {
                     test.Fail("Unable to find table Custom Field Config");
+                    GenericMethods.CaptureScreenshot();
                     flag = false;
                 }
             }
             catch (Exception ex)
             {
                 test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
+                GenericMethods.CaptureScreenshot();
                 EndTest();
                 //throw new Exception(ex.Message);
             }

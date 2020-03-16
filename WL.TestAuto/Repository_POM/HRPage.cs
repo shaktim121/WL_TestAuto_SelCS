@@ -15,7 +15,7 @@ namespace WL.TestAuto
     {
         private IWebDriver driver;
         //public override TestContext TestContext { get; set; }
-        
+
 
         #region HR Page Object Collection
         [FindsBy(How = How.XPath, Using = "*//span[text()='Human Resources' or text()='Ressources humaines']")]
@@ -50,6 +50,9 @@ namespace WL.TestAuto
 
         [FindsBy(How = How.XPath, Using = "*//iframe[contains(@id,'EmployeeListing') and contains(@src, 'EmployeeListing')]")]
         private IWebElement PDFReportAreaEL { get; set; }
+
+        [FindsBy(How = How.XPath, Using = "*//iframe[contains(@id,'_pdfPane') and contains(@src, 'PDF')]")]
+        private IWebElement PDFReportArea { get; set; }
 
         [FindsBy(How = How.XPath, Using = "*//input[@value='PDF']")]
         private IWebElement Btn_ExportPDF { get; set; }
@@ -329,13 +332,13 @@ namespace WL.TestAuto
 
         [FindsBy(How = How.XPath, Using = "*//span[@class='rtsTxt' and text()='Address']")]
         private IWebElement Tab_Address { get; set; }
-        
+
         [FindsBy(How = How.XPath, Using = "*//*[@id='ctl00_ContentPlaceHolder1_EmployeeControl1_PersonPhoneControl_PersonContactChannelGrid_ctl00_ctl02_ctl00_EmployeeSummaryToolBar']//span[text()='Add']")]
 
         private IWebElement Btn_AddPhones { get; set; }
         [FindsBy(How = How.XPath, Using = "*//span[@class='rtsTxt' and text()='Phones']")]
         private IWebElement Tab_Phones { get; set; }
-        
+
         [FindsBy(How = How.XPath, Using = "*//table[@id='ctl00_ContentPlaceHolder1_EmployeeControl1_PersonPhoneControl_PersonContactChannelGrid_ctl00']")]
         private IWebElement Tbl_Phones { get; set; }
 
@@ -568,7 +571,7 @@ namespace WL.TestAuto
                 string labelFields = data.GetTestData("Verify_LabelFields");
 
                 //Code for text field verification
-                if (textFields!=null && textFields.Length > 0)
+                if (textFields != null && textFields.Length > 0)
                 {
                     string[] text = textFields.Split(';');
                     foreach (string t in text)
@@ -589,7 +592,7 @@ namespace WL.TestAuto
                 }
 
                 //Code to verify buttons
-                if (buttons!= null && buttons.Length > 0)
+                if (buttons != null && buttons.Length > 0)
                 {
                     string[] btn = buttons.Split(';');
                     foreach (string b in btn)
@@ -610,7 +613,7 @@ namespace WL.TestAuto
                 }
 
                 //Code to verify checkboxes
-                if (checkBoxes!=null && checkBoxes.Length > 0)
+                if (checkBoxes != null && checkBoxes.Length > 0)
                 {
                     string[] chk = checkBoxes.Split(';');
                     foreach (string ch in chk)
@@ -643,7 +646,7 @@ namespace WL.TestAuto
                 }
 
                 //Code to verify Dropdown or Comboboxes
-                if (drpDowns!=null && drpDowns.Length > 0)
+                if (drpDowns != null && drpDowns.Length > 0)
                 {
                     string[] drp = drpDowns.Split(';');
                     foreach (string dd in drp)
@@ -664,7 +667,7 @@ namespace WL.TestAuto
                 }
 
                 //Code to verify Toolbar
-                if (toolBars!=null && toolBars.Length > 0)
+                if (toolBars != null && toolBars.Length > 0)
                 {
                     string[] toolBarL = toolBars.Split(';');
                     foreach (string tool in toolBarL)
@@ -685,7 +688,7 @@ namespace WL.TestAuto
                 }
 
                 //Code to verify Column Headers in Table
-                if (tableColumns!=null && tableColumns.Length > 0)
+                if (tableColumns != null && tableColumns.Length > 0)
                 {
                     string[] cols = tableColumns.Split(';');
                     foreach (string col in cols)
@@ -717,7 +720,7 @@ namespace WL.TestAuto
                 }
 
                 //Code to verify other Label fields
-                if (labelFields!=null && labelFields.Length > 0)
+                if (labelFields != null && labelFields.Length > 0)
                 {
                     string[] labels = labelFields.Split(';');
                     foreach (string label in labels)
@@ -790,12 +793,31 @@ namespace WL.TestAuto
         /// </summary>
         /// <param name="reportName"></param>
         /// <returns></returns>
-        public bool Fn_ViewAndVerify_HR_ReportDisplayedOnScreen(string reportName)
+        public bool Fn_ViewAndVerify_HR_ReportDisplayedOnScreen(string reportNames)
         {
             Boolean flag = false;
             try
             {
-                switch (reportName)
+                string[] reportList = reportNames.Split(';');
+                foreach(string report in reportList)
+                {
+                    if(Btn_ViewReport.Exists(10))
+                    {
+                        Btn_ViewReport.Click();
+                        if(PDFReportArea.Exists(180))
+                        {
+                            driver.SwitchTo().Frame(PDFReportArea);
+                            if(driver.FindElement(By.XPath("//embed[@type='application/pdf']")).Exists(180))
+                            {
+                                driver.SwitchTo().DefaultContent();
+                                Thread.Sleep(3000);
+                                Btn_ExportPDF.Click();
+                                flag = true;
+                            }
+                        }
+                    }
+                }
+                /*switch (reportName)
                 {
                     case "Anniversary Listing":
                         if (Btn_ViewReport.Exists(10))
@@ -828,7 +850,7 @@ namespace WL.TestAuto
                     default:
                         test.Fail("Invalid Report Name");
                         break;
-                }
+                }*/
 
             }
             catch (Exception ex)
@@ -926,6 +948,15 @@ namespace WL.TestAuto
                 {
                     Btn_AddToTable.Click();
 
+                    #region Select Process Group
+                    driver.SwitchTo().Frame(Frame_AddEmployeeWizard);
+                    //Code to select Process group might go in here if needed
+
+                    Btn_NextScreen.Click();
+                    driver.SwitchTo().DefaultContent();
+
+                    #endregion
+
                     #region  Add Employee Wizard - Biographical
                     //Wait for Add Employee Wizard - Biographical
                     if (Lbl_AddEmployeeBioWizard.Exists(10))
@@ -951,6 +982,9 @@ namespace WL.TestAuto
                         GenericMethods.SelectValueFromDropDown(DrpDwn_MaritalStatus, List_AllDrpDwn, "Single");
                         Thread.Sleep(1000);
 
+                        Btn_NextScreen.Click();
+                        driver.SwitchTo().DefaultContent();
+
                     }
                     else
                     {
@@ -959,9 +993,7 @@ namespace WL.TestAuto
                     }
 
                     #endregion
-
-                    Btn_NextScreen.Click();
-                    driver.SwitchTo().DefaultContent();
+                    
 
                     #region Add Employee Wizard - Address
                     //Wait for Add Employee Wizard - Address
@@ -1042,7 +1074,7 @@ namespace WL.TestAuto
                         Thread.Sleep(10000);
                         GenericMethods.SelectValueFromDropDown(DrpDwn_BusinessUnit, List_AllDrpDwn, "0906-0906");
                         Thread.Sleep(10000);
-                        GenericMethods.SelectValueFromDropDown(DrpDwn_Dept, List_AllDrpDwn, "305308-305308");
+                        GenericMethods.SelectValueFromDropDown(DrpDwn_Dept, List_AllDrpDwn, "111165-205341");
                         Thread.Sleep(10000);
 
                         if (DrpDwn_Job.Exists(10))
@@ -1142,26 +1174,26 @@ namespace WL.TestAuto
                         GenericMethods.SelectValueFromDropDown(DrpDwn_Province, List_AllDrpDwn, "Ontario");
                         Thread.Sleep(5000);
                         GenericMethods.SelectValueFromDropDown(DrpDwn_Business, List_AllDrpDwn, "BusNum:1/1.17800");
-                        Thread.Sleep(5000);
-                        if (Txt_FederalTaxClaim.GetAttribute("value").ToString() == "12,069")
+                        Thread.Sleep(3000);
+                        if (Convert.ToInt32(Txt_FederalTaxClaim.GetAttribute("value").Replace(",",""))>0)
                         {
-                            test.Pass("Federal Tax Claim displayed correctly");
+                            test.Pass("Federal Tax Claim displayed correctly : " + Txt_FederalTaxClaim.GetAttribute("value").ToString());
                             flag = true;
                         }
                         else
                         {
-                            test.Fail("Federal Tax Claim displayed incorrectly");
+                            test.Fail("Federal Tax Claim displayed incorrectly : " + Txt_FederalTaxClaim.GetAttribute("value").ToString());
                             flag = false;
                         }
 
-                        if (Txt_ProvTaxClaim.GetAttribute("value").ToString() == "10,582")
+                        if (Convert.ToInt32(Txt_ProvTaxClaim.GetAttribute("value").Replace(",", "")) > 0)
                         {
-                            test.Pass("Provincial Tax Claim displayed correctly");
+                            test.Pass("Provincial Tax Claim displayed correctly : " + Txt_ProvTaxClaim.GetAttribute("value").ToString());
                             flag = true;
                         }
                         else
                         {
-                            test.Fail("Provincial Tax Claim displayed incorrectly");
+                            test.Fail("Provincial Tax Claim displayed incorrectly : " + Txt_ProvTaxClaim.GetAttribute("value").ToString());
                             flag = false;
                         }
 
@@ -1367,7 +1399,12 @@ namespace WL.TestAuto
                         test.Pass("Employee Termination page displayed");
                         driver.SwitchTo().Frame(Frame_EmployeeTerminations);
 
-                        if (Tab_Termination.Exists(10))
+                        if(driver.FindElements(By.XPath(".//span[text()='Event']//following::*//span[text()='Termination']")).Count > 0)
+                        {
+                            test.Pass("Employee already terminated");
+                            flag = true;
+                        }
+                        else if (Tab_Termination.Exists(10))
                         {
                             Tab_Termination.Click();
                             Thread.Sleep(2000);
@@ -1392,9 +1429,16 @@ namespace WL.TestAuto
                                 Thread.Sleep(5000);
                             }
                         }
+
                         driver.SwitchTo().DefaultContent();
+
                         Btn_CloseX.Click();
                         Thread.Sleep(10000);
+                    }
+                    else
+                    {
+                        test.Fail("Failed to display Employee Termination page");
+                        flag = false;
                     }
                 }
             }
@@ -1452,7 +1496,7 @@ namespace WL.TestAuto
         //Edit Biographical_Personal
         public bool Fn_Edit_Biographical_Details_Of_Employee(string empNo, string title, string fName, string lName, string language, string birthDate, string maritalStatus, string mName, string knownName, string gender, string identificationType, string SIN, string smoker, string empEquity, string bilingual, string citizenship, string healthCareNum, string badgeNum, string addressType, string add1, string add2, string zipCode, string city, string country, string province, string phoneType, string phNumber)
         {
-            Boolean flag = false;
+            Boolean flag = true;
             try
             {
                 Btn_EmpBio.Click();
@@ -1570,7 +1614,7 @@ namespace WL.TestAuto
                         else
                         {
                             test.Fail("Failed to Edit and Save Employee record: " + empNo);
-                            flag = false;
+                            return false;
                         }
                     }
                     #endregion
@@ -1631,7 +1675,7 @@ namespace WL.TestAuto
                                 else
                                 {
                                     test.Fail("Failed to Edit and Save Employee record: " + empNo);
-                                    flag = false;
+                                    return false;
                                 }
                             }
 
@@ -1645,7 +1689,7 @@ namespace WL.TestAuto
                     Tab_Phones.Click();
                     Thread.Sleep(4000);
 
-                    if(Tbl_Phones.FindElements(By.XPath(".//*[text()='No records to display.']")).Count > 0)
+                    if (Tbl_Phones.FindElements(By.XPath(".//*[text()='No records to display.']")).Count > 0)
                     {
                         Btn_AddPhones.Click();
 
@@ -1681,7 +1725,7 @@ namespace WL.TestAuto
             return flag;
         }
 
-        
+
 
 
         #endregion

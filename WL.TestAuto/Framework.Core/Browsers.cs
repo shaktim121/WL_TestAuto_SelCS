@@ -19,6 +19,7 @@ namespace WL.TestAuto
             switch (browser)
             {
                 case "Chrome":
+                    Utilities.Kill_Process("chromedriver");
                     GetDriver = new ChromeDriver();
                     break;
                 case "IE":

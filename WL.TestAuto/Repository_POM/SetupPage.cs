@@ -35,7 +35,7 @@ namespace WL.TestAuto
         [FindsBy(How = How.XPath, Using = "*//a[text()='Payroll Processing Group']")]
         private IWebElement Link_PayProcessGroup { get; set; }
 
-        [FindsBy(How = How.XPath, Using = "*//a[text()='Organizational Unit Level']")]
+        [FindsBy(How = How.XPath, Using = "*//a[text()='Organizational Unit Level' or text()='Organization Unit Level']")]
         private IWebElement Link_OrgUnitLevel { get; set; }
 
         [FindsBy(How = How.XPath, Using = "*//a[text()='Wizard Template']")]
@@ -62,7 +62,7 @@ namespace WL.TestAuto
         [FindsBy(How = How.XPath, Using = "*//table[contains(@class,'rgMasterTable') and contains(@id,\"MainContent_OrganizationalUnitLevelControl_OrganizationalUnitLevelGrid\")]")]
         private IWebElement Tbl_OrgUnitLevel { get; set; }
 
-        [FindsBy(How = How.XPath, Using = "*//table[contains(@class,'rgMasterTable') and contains(@id,\"MainContent_WizardTemplateControl1_TemplateSummaryGrid\")]")]
+        [FindsBy(How = How.XPath, Using = "*//table[contains(@class,'rgMasterTable') and @id='ctl00_MainContent_WizardTemplateControl1_TemplateSummaryGrid_ctl00']")]
         private IWebElement Tbl_WizardTemp { get; set; }
 
         [FindsBy(How = How.XPath, Using = "*//table[contains(@class,'rgMasterTable') and contains(@id,\"MainContent_PaycodeAssociationControl1_PaycodeAssociationGrid\")]")]
@@ -199,7 +199,7 @@ namespace WL.TestAuto
                     }
                 }
 
-                if (Option.ToLower().Equals("organizational unit level"))
+                if (Option.ToLower().Equals("organizational unit level") || Option.ToLower().Equals("organization unit level"))
                 {
                     GenericMethods.SelectValueFromSlideDropDown(Menu_Setup, "Setup", Menu_SlideSetup, Option);
                     if (Link_OrgUnitLevel.Exists(30))

@@ -21,6 +21,15 @@ namespace WL.TestAuto
         [FindsBy(How = How.Id, Using = "Username")]
         private IWebElement Txt_UserName_Aut { get; set; }
 
+        [FindsBy(How = How.XPath, Using = "*//input[translate(@id,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='username' or @id='Login1_UserName']")]
+        private IWebElement Txt_UserName { get; set; }
+
+        [FindsBy(How = How.XPath, Using = "*//input[@id='Password' or @id='password' or @id='Login1_Password']")]
+        private IWebElement Txt_Password { get; set; }
+
+        [FindsBy(How = How.XPath, Using = "*//*[@value='Log In' or text()='Login' or text()='Continue' and @type='submit']")]
+        private IWebElement Btn_Login { get; set; }
+
         [FindsBy(How = How.Id, Using = "Password")]
         private IWebElement Txt_Password_Aut { get; set; }
 
@@ -44,7 +53,8 @@ namespace WL.TestAuto
 
         private void ClickOnLogInButton()
         {
-            string url = ConfigurationManager.AppSettings["url"];
+            Btn_Login.Click();
+            /*string url = ConfigurationManager.AppSettings["url"];
 
             if (url.Contains("automation"))
             {
@@ -54,6 +64,10 @@ namespace WL.TestAuto
             {
                 Btn_Login_Wlat.Click();
             }
+            else
+            {
+                Btn_Login_Wlat.Click();
+            }*/
             
         }
 
@@ -61,7 +75,7 @@ namespace WL.TestAuto
         {
             try
             {
-                if (Browsers.Title.Contains("WebApplication") || Browsers.Title.Contains("Log On"))
+                if (Browsers.Title.Contains("WebApplication") || Browsers.Title.Contains("Log On") || Browsers.Title.Contains("Log in to Worklinks"))
                 {
                     return true;
                 }
@@ -99,8 +113,11 @@ namespace WL.TestAuto
             try
             {
                 Assert.IsTrue(IsAt());
-                
-                if(url.Contains("automation"))
+
+                Txt_UserName.SetText(user);
+                Txt_Password.SetText(pwd);
+
+                /*if(url.Contains("automation"))
                 {
                     Txt_UserName_Aut.SetText(user);
                     Txt_Password_Aut.SetText(pwd);
@@ -112,6 +129,11 @@ namespace WL.TestAuto
                     Txt_Password_Wlat.SetText(pwd);
                     
                 }
+                else
+                {
+                    Txt_UserName_Wlat.SetText(user);
+                    Txt_Password_Wlat.SetText(pwd);
+                }*/
 
                 ClickOnLogInButton();
 
@@ -136,6 +158,7 @@ namespace WL.TestAuto
                 if (!lblUserText.ToLower().Contains(user.ToLower()))
                 {
                     test.Fail("Failed to verify Signed in user in Landing Page");
+                    GenericMethods.CaptureScreenshot();
                     flag = false;
                 }
                 else
@@ -146,8 +169,8 @@ namespace WL.TestAuto
             catch (Exception ex)
             {
                 test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
-                EndTest();
-                //throw new Exception(ex.Message);
+                GenericMethods.CaptureScreenshot();
+                throw new Exception(ex.Message);
             }
             //Change it to Explicit wait later
             Thread.Sleep(5000);
@@ -158,6 +181,7 @@ namespace WL.TestAuto
             else
             {
                 test.Fail("Login to application Failed");
+                GenericMethods.CaptureScreenshot();
             }
             return flag;
         }
@@ -171,10 +195,8 @@ namespace WL.TestAuto
                 Lnk_Logout.Highlight();
                 Lnk_Logout.Click();
 
-                string url = "url".AppSettings() ;
-                if (url.Contains("wlat"))
+                if(Txt_UserName.Exists(10))
                 {
-                    Txt_UserName_Wlat.Exists(10);
                     test.Pass("Logout screen verified");
                     Thread.Sleep(3000);
                     flag = true;
@@ -190,11 +212,15 @@ namespace WL.TestAuto
                 {
                     test.Fail("Failed to verify logout screen");
                 }
+
             }
             catch (Exception ex)
             {
                 test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
-                EndTest();
+                test.Fail("Failed to Logout from application");
+                GenericMethods.CaptureScreenshot();
+                return false;
+                //EndTest();
                 //throw new Exception(ex.Message);
             }
             if(flag)
@@ -202,8 +228,9 @@ namespace WL.TestAuto
                 test.Pass("Logged Out of application successfully");
             }
             else
-            {
+            {   
                 test.Fail("Failed to Logout from application");
+                GenericMethods.CaptureScreenshot();
             }
             return flag;
         }

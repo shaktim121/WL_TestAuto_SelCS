@@ -29,7 +29,8 @@ namespace WL.TestAuto
         //Report initialize
         private static readonly string fileName = "TestName".AppSettings() + "_Report_" + Utilities.GetTimeStamp(DateTime.Now);
         private static readonly string fileNameExt = fileName + ".html";
-        public static readonly string reportPath = projectDirectory + "\\TestReports\\" + fileName + "\\" + fileNameExt;
+        public static readonly string reportFolder = projectDirectory + "\\TestReports\\" + fileName;
+        public static readonly string reportPath = reportFolder + "\\" + fileNameExt;
 
         public static ExtentReports extent;
         public static ExtentV3HtmlReporter htmlReporter;
@@ -59,9 +60,7 @@ namespace WL.TestAuto
             catch (Exception ex)
             {
                 test.Error("Failed to Launch/Login to Application or Browser with Exception: " + ex.StackTrace + " and Message: "+ ex.Message);
-                Browsers.Close();
-                extent.Flush();
-                Thread.Sleep(5000);
+                GenericMethods.CaptureScreenshot();
                 throw new Exception(ex.Message);
             }
         }
@@ -90,7 +89,9 @@ namespace WL.TestAuto
             extent.AddSystemInfo("OS : ", Environment.OSVersion.ToString());
             extent.AddSystemInfo("Host Name : ", Dns.GetHostName());
             extent.AddSystemInfo("Browser : ", "browser".AppSettings());
-            extent.AddSystemInfo("User : ", "user".AppSettings());
+            extent.AddSystemInfo("Run User : ", Environment.UserName.ToString());
+            extent.AddSystemInfo("WL Environment : ", "url".AppSettings());
+            extent.AddSystemInfo("LogIn User : ", "user".AppSettings());
 
             extent.AttachReporter(htmlReporter);
             #endregion

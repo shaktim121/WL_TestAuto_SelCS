@@ -256,11 +256,12 @@ namespace WL.TestAuto
 
             try
             {
-                ds = GlobalDB.ExecuteStoredProc(storedProc, spParams);
+                string connection = GlobalDB.CreateConnectionString("dataSource".AppSettings(), "dbReportName".AppSettings(), "dbUser".AppSettings(), "dbPwd".AppSettings(), true);
+                ds = GlobalDB.ExecuteStoredProc(storedProc, spParams, connection);
 
                 if (dataToVerify.ToLower().Contains("data exists"))
                 {
-                    if (ds.Tables[0].Rows[0].ItemArray.Length > 0)
+                    if (ds.Tables[0].Rows.Count > 0)
                     {
                         test.Pass("Data Exists in the Report and is not empty");
                         flag = true;
@@ -316,7 +317,8 @@ namespace WL.TestAuto
             DataSet ds;
             try
             {
-                ds = GlobalDB.ExecuteStoredProc(storedProc, spParams);
+                string connection = GlobalDB.CreateConnectionString("dataSource".AppSettings(), "dbReportName".AppSettings(), "dbUser".AppSettings(), "dbPwd".AppSettings(), true);
+                ds = GlobalDB.ExecuteStoredProc(storedProc, spParams, connection);
                 foreach(string col in colNames.Split(';'))
                 {
                     if (ds.Tables[0].Columns.Contains(col))
@@ -339,30 +341,28 @@ namespace WL.TestAuto
             return flag;
         }
 
-        //Gets all the specified column values from report DB and returns a List
-        public List<string> Fn_Get_ReportsData_From_DataBase(string storedProc, string spParams, string colNames)
+        //Gets all the values from the specified column from report DB and returns a List
+        public List<string> Fn_Get_ReportsData_From_DataBase(string storedProc, string spParams, string colName)
         {
             List<string> listVals = new List<string>();
             DataSet ds;
             string colval;
             try
             {
-                ds = GlobalDB.ExecuteStoredProc(storedProc, spParams);
-                foreach (string col in colNames.Split(';'))
-                {   
-                    if (ds.Tables[0].Rows.Count > 0)
+                string connection = GlobalDB.CreateConnectionString("dataSource".AppSettings(), "dbReportName".AppSettings(), "dbUser".AppSettings(), "dbPwd".AppSettings(), true);
+                ds = GlobalDB.ExecuteStoredProc(storedProc, spParams, connection);
+                if (ds.Tables[0].Rows.Count > 0)
+                {
+                    foreach(DataRow row in ds.Tables[0].Rows)
                     {
-                        foreach(DataRow row in ds.Tables[0].Rows)
-                        {
-                            colval = row[col].ToString();
-                            listVals.Add(colval);
-                        }
+                        colval = row[colName].ToString();
+                        listVals.Add(colval);
                     }
-                    else
-                    {
-                        listVals.Add("");
-                    }   
                 }
+                else
+                {
+                    listVals.Add("");
+                }   
             }
             catch (Exception ex)
             {
@@ -371,6 +371,68 @@ namespace WL.TestAuto
                 //throw new Exception(ex.Message);
             }
             return listVals;
+        }
+
+        //Get data from specified column and row number
+        public string Fn_Get_ReportsData_From_DataBase(string storedProc, string spParams, string colName, int row)
+        {
+            DataSet ds;
+            string colval = "";
+            try
+            {
+                string connection = GlobalDB.CreateConnectionString("dataSource".AppSettings(), "dbReportName".AppSettings(), "dbUser".AppSettings(), "dbPwd".AppSettings(), true);
+                ds = GlobalDB.ExecuteStoredProc(storedProc, spParams, connection);
+                if (ds.Tables[0].Rows.Count > 0)
+                {
+                    colval = ds.Tables[0].Rows[row][colName].ToString();
+                    
+                }
+            }
+            catch (Exception ex)
+            {
+                test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
+                EndTest();
+                //throw new Exception(ex.Message);
+            }
+            return colval;
+        }
+
+        //Get data from specified column with reference to reference column and value
+        public string Fn_Get_ReportsData_From_DataBase(string storedProc, string spParams, string colName, string refCol, string refVal)
+        {
+            DataSet ds;
+            string colval = "";
+            try
+            {
+                string connection = GlobalDB.CreateConnectionString("dataSource".AppSettings(), "dbReportName".AppSettings(), "dbUser".AppSettings(), "dbPwd".AppSettings(), true);
+                ds = GlobalDB.ExecuteStoredProc(storedProc, spParams, connection);
+                if (ds.Tables[0].Rows.Count > 0)
+                {
+                    foreach(DataRow row in ds.Tables[0].Rows)
+                    {
+                        bool flag = true;
+                        for(int i = 0; i<refCol.Split(';').Length; i++)
+                        {
+                            if(!row[refCol.Split(';')[i]].ToString().Equals(refVal.Split(';')[i]))
+                            {
+                                flag = false;
+                            }
+                        }
+                        if(flag)
+                        {
+                            colval = row[colName].ToString();
+                        }
+                    }
+
+                }
+            }
+            catch (Exception ex)
+            {
+                test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
+                EndTest();
+                //throw new Exception(ex.Message);
+            }
+            return colval;
         }
 
 

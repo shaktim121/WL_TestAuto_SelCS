@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using AutoIt;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Interactions;
 using OpenQA.Selenium.Support.PageObjects;
@@ -6,6 +6,7 @@ using OpenQA.Selenium.Support.UI;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -61,6 +62,9 @@ namespace WL.TestAuto
 
         [FindsBy(How = How.XPath, Using = "*//span[contains(@class,'rmExpandDown') and text()='Reports']")]
         private IWebElement Tab_Reports { get; set; }
+        
+        [FindsBy(How = How.XPath, Using = "*//span[text()='Mass Payslip File']")]
+        private IWebElement Tab_MassPayslipFile { get; set; }
 
         [FindsBy(How = How.XPath, Using = "*//span[contains(@class,'rmExpandRight') and text()='Standard']")]
         private IWebElement SubMenu_Standard { get; set; }
@@ -101,6 +105,9 @@ namespace WL.TestAuto
         [FindsBy(How = How.XPath, Using = "*//span[text()='Calculate']")]
         private IWebElement Btn_Calculate { get; set; }
 
+        [FindsBy(How = How.XPath, Using = "*//span[text()='Post']")]
+        private IWebElement Btn_Post { get; set; }
+
         [FindsBy(How = How.XPath, Using = "*//div[contains(@class,'RadComboBoxDropDown') and contains(@style,'display: block')]")]
         private IWebElement List_AllDrpDwn { get; set; }
 
@@ -125,8 +132,14 @@ namespace WL.TestAuto
         [FindsBy(How = How.XPath, Using = "*//td[@class='rwWindowContent rwExternalContent']")]
         private IWebElement Win_PDFReport { get; set; }
 
-        [FindsBy(How = How.XPath, Using = "*//iframe[contains(@name,'RegisterReportWindow')]")]
+        [FindsBy(How = How.XPath, Using = "*//iframe[contains(@name,'RegisterReportWindow') or contains(@name,'PayrollProcessWindow')]")]
         private IWebElement Frame_PDFReport { get; set; }
+        
+        [FindsBy(How = How.XPath, Using = "*//div[@class='rmScrollWrap rmGroup rmLevel1']//a[@class='rmBottomArrow']")]
+        private IWebElement Btn_ScrollDownArrow { get; set; }
+        
+        [FindsBy(How = How.XPath, Using = "*//div[@class='rmScrollWrap rmGroup rmLevel1']//a[@class='rmTopArrow']")]
+        private IWebElement Btn_ScrollUpArrow { get; set; }
 
 
         #endregion
@@ -160,6 +173,7 @@ namespace WL.TestAuto
                     else
                     {
                         test.Fail("Failed to verify 'Payroll -> Employee' on page");
+                        GenericMethods.CaptureScreenshot();
                         flag = false;
                     }
                 }
@@ -177,6 +191,7 @@ namespace WL.TestAuto
                     else
                     {
                         test.Fail("Failed to verify 'Payroll -> Batch' on page");
+                        GenericMethods.CaptureScreenshot();
                         flag = false;
                     }
                 }
@@ -196,6 +211,7 @@ namespace WL.TestAuto
                     {
                         test.Fail("Failed to verify 'Payroll -> Payroll Transaction' on page");
                         test.Fail("Failed to navigate to Payroll Transaction Screen under Payroll");
+                        GenericMethods.CaptureScreenshot();
                         flag = false;
                     }
                    
@@ -216,6 +232,7 @@ namespace WL.TestAuto
                     {
                         test.Fail("Failed to verify 'Payroll -> Payroll Process' on page");
                         test.Fail("Failed to navigate to Payroll Process Screen under Payroll");
+                        GenericMethods.CaptureScreenshot();
                         flag = false;
                     }
                 }
@@ -235,6 +252,7 @@ namespace WL.TestAuto
                     {
                         test.Fail("Failed to verify 'Payroll -> Payments' on page");
                         test.Fail("Failed to navigate to Payments Screen under Payroll");
+                        GenericMethods.CaptureScreenshot();
                         flag = false;
                     }
                 }
@@ -252,6 +270,7 @@ namespace WL.TestAuto
                     else
                     {
                         test.Fail("Failed to verify 'Payroll -> Import' on page");
+                        GenericMethods.CaptureScreenshot();
                         flag = false;
                     }
                 }
@@ -270,6 +289,7 @@ namespace WL.TestAuto
                     else
                     {
                         test.Fail("Failed to verify 'Payroll -> Reports -> " + Option.Split('-')[1] + "' on page");
+                        GenericMethods.CaptureScreenshot();
                         flag = false;
                     }
                 }
@@ -277,22 +297,14 @@ namespace WL.TestAuto
             catch (Exception ex)
             {
                 test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
+                GenericMethods.CaptureScreenshot();
                 EndTest();
                 //throw new Exception(ex.Message);
             }
             return flag;
         }
 
-        /// <summary>
-        /// Verify fields under Payroll screens
-        /// </summary>
-        /// <param name="textFields"></param>
-        /// <param name="buttons"></param>
-        /// <param name="drpDowns"></param>
-        /// <param name="checkBoxes"></param>
-        /// <param name="toolBars"></param>
-        /// <param name="tableColumns"></param>
-        /// <returns></returns>
+        //Verify fields under Payroll screens
         public bool Fn_Verify_Fields_In_Payroll_Screens(string textFields, string buttons, string drpDowns, string checkBoxes, string toolBars, string tableColumns, string labelFields)
         {
             Boolean flag = false;
@@ -487,94 +499,25 @@ namespace WL.TestAuto
             catch (Exception ex)
             {
                 test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
+                GenericMethods.CaptureScreenshot();
                 EndTest();
                 //throw new Exception(ex.Message);
             }
-            if(flag) test.Pass("All fields in Payroll Process screen under Payroll are verified successfully");
-            else test.Fail("Failed to verify all fields in Payroll Process screen under Payroll");
+            if (flag) test.Pass("All fields in Payroll Process screen under Payroll are verified successfully");
+            else
+            {
+                test.Fail("Failed to verify all fields in Payroll Process screen under Payroll");
+                GenericMethods.CaptureScreenshot();
+            }
 
             return flag;
         }
 
-        //reportNames: report1;report2;....
-        public bool Fn_Verify_Reports_In_Payroll_PaymentsTable(string reportNames)
+        public bool Fn_Verify_ImportTypesDisplayed_In_Payroll_Import(string typeNames)
         {
             Boolean flag = false;
             try
-            {
-                Btn_Search.Click();
-                if (Tbl_PaymentsPayroll.Exists(10))
-                {
-                    if(Tbl_PaymentsPayroll.FindElements(By.XPath(".//tbody/tr")).Count > 0)
-                    {
-                        Tbl_PaymentsPayroll.FindElements(By.XPath(".//tbody/tr"))[0].Click();
-                    }
-                    
-                    if(Tab_Reports.Exists(5) && Tab_Reports.Enabled)
-                    {
-                        Tab_Reports.Click();
-                        if(SubMenu_Standard.Exists(5))
-                        {
-                            SubMenu_Standard.Click();
-                        }
-                    }
-                    Thread.Sleep(2000);
-                    var parent = SubMenu_Standard.FindElement(By.XPath("./parent::*/parent::li"));
-                    var reportListUI = parent.FindElements(By.XPath(".//span"));
-                    int failCnt = 0;
-                    if (reportNames != "" && reportListUI.Count > 0)
-                    {
-                        string[] reports = reportNames.Split(';');
-                        foreach (string report in reports)
-                        {
-                            //counter for individual report
-                            int cnt = 0;
-                            for (int r=0; r < reportListUI.Count-1; r++)
-                            {
-                                if(report.ToLower().Equals(reportListUI[r].Text.ToLower()))
-                                {
-                                    cnt++;
-                                    reportListUI[r].Highlight();
-                                    test.Pass(report + " : Found");
-                                    flag = true;
-                                    break;
-                                }
-                            }
-                            if(cnt==0)
-                            {
-                                failCnt++;
-                                test.Fail(report + " : Not Found");
-                                flag = false;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        flag = false;
-                    }
-
-                    //if one report is not found return fail
-                    if (failCnt != 0) flag = false;
-                }
-                
-            }
-            catch (Exception ex)
-            {
-                test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
-                EndTest();
-                //throw new Exception(ex.Message);
-            }
-            if(flag) test.Pass("All reports Available in UI");
-            else test.Fail("Report verification in UI failed");
-            return flag;
-        }
-
-        public bool Fn_Verify_ImportTypes_In_Payroll_Import(string typeNames)
-        {
-            Boolean flag = false;
-            try
-            {
-                string[] types = typeNames.Split(';');
+            {   
                 if (DrpDwn_ImportType.Exists(5))
                 {
                     DrpDwn_ImportType.Click();
@@ -582,7 +525,8 @@ namespace WL.TestAuto
                     int failCnt = 0;
                     if (typeNames!="" && typeList.Count > 0)
                     {
-                        foreach(string type in types)
+                        string[] types = typeNames.Split(';');
+                        foreach (string type in types)
                         {
                             int cnt = 0;
                             for (int t = 0; t < typeList.Count; t++)
@@ -607,16 +551,21 @@ namespace WL.TestAuto
                     else
                     {
                         test.Fail("No Types listed");
+                        GenericMethods.CaptureScreenshot();
                         flag = false;
                     }
 
                     //if one type is not found return false
-                    if (failCnt != 0) flag = false;
+                    if (failCnt != 0)
+                    {
+                        GenericMethods.CaptureScreenshot(); flag = false;
+                    }
                 }
             }
             catch (Exception ex)
             {
                 test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
+                GenericMethods.CaptureScreenshot();
                 EndTest();
                 //throw new Exception(ex.Message);
             }
@@ -635,6 +584,7 @@ namespace WL.TestAuto
                 if (reportName=="")
                 {
                     test.Error("No report name specified");
+                    GenericMethods.CaptureScreenshot();
                     return false;
                 }
 
@@ -666,6 +616,7 @@ namespace WL.TestAuto
                                     else
                                     {
                                         test.Fail("Failed to find or export report: " + reportNav[reportNav.Length - 2] + "from " + reportName);
+                                        GenericMethods.CaptureScreenshot();
                                         flag = false;
                                     }
                                 }
@@ -706,6 +657,7 @@ namespace WL.TestAuto
                                 else
                                 {
                                     test.Fail("Failed to navigate to report: "+ report + "from " + reportName);
+                                    GenericMethods.CaptureScreenshot();
                                     flag = false;
                                 }
                             }
@@ -716,6 +668,7 @@ namespace WL.TestAuto
             catch (Exception ex)
             {
                 test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
+                GenericMethods.CaptureScreenshot();
                 EndTest();
                 //throw new Exception(ex.Message);
             }
@@ -742,11 +695,13 @@ namespace WL.TestAuto
                     {
                         flag = false;
                         test.Fail("No Employee records displayed");
+                        GenericMethods.CaptureScreenshot();
                     }
                 }
                 else
                 {
                     test.Fail("Unable to find table Payroll Transaction");
+                    GenericMethods.CaptureScreenshot();
                     flag = false;
                 }
             }
@@ -754,6 +709,7 @@ namespace WL.TestAuto
             {
                 driver.SwitchTo().DefaultContent();
                 test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
+                GenericMethods.CaptureScreenshot();
                 EndTest();
                 //throw new Exception(ex.Message);
             }
@@ -802,6 +758,7 @@ namespace WL.TestAuto
                             else
                             {
                                 test.Fail("No Field: " + field + " with value: " + value + " is found");
+                                GenericMethods.CaptureScreenshot();
                                 flag = false;
                             }
 
@@ -812,17 +769,20 @@ namespace WL.TestAuto
                     else
                     {
                         test.Fail("Employee Position window not opened");
+                        GenericMethods.CaptureScreenshot();
                         flag = false;
                     }
                 }
                 else
                 {
+                    GenericMethods.CaptureScreenshot();
                     flag = false;
                 }
             }
             catch (Exception ex)
             {
                 test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
+                GenericMethods.CaptureScreenshot();
                 EndTest();
                 //throw new Exception(ex.Message);
             }
@@ -834,27 +794,17 @@ namespace WL.TestAuto
         public bool Fn_Calculate_Payroll_In_Payroll_Process(string processGroup, string runType, string chequeDate)
         {
             bool flag = false;
-            WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(30));
+            WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(60));
             try
             {
-                if(Lbl_PayrollStatus.Text == "Calculation Processed")
+                if(!Lbl_PayrollStatus.Exists(5))
                 {
-                    Btn_UndoCalc.Click();
-                    wait.Until(drv => Lbl_PayrollStatus.Text == "New");
-
-                    if (Lbl_PayrollStatus.Text != "New")
-                    {
-                        test.Fail("Undo Payroll Failed");
-                        flag = false;
-                    }
-                    else
-                    {
-                        test.Pass("Undo Payroll Successful");
-                        flag = true;
-                    }
+                    DrpDwn_ProcessGrp.SelectValueFromDropDown(List_AllDrpDwn, processGroup);
                 }
 
-                if(Lbl_PayrollStatus.Text == "New")
+                Fn_Undo_Payroll_Calculation();
+
+                if(Fn_GetPayrollRunStatus() == "New")
                 {
                     if(processGroup!="")
                     {
@@ -874,13 +824,14 @@ namespace WL.TestAuto
                     Thread.Sleep(2000);
 
                     Btn_Calculate.Click();
-                    wait.Until(drv => Lbl_PayrollStatus.Text == "Calculation Processed");
+                    wait.Until(drv => (Lbl_PayrollStatus.Text.ToLower() == "calculation processed")||(Lbl_PayrollStatus.Text.ToLower() == "calculation in arrears"));
                     flag = true;
                     test.Pass("Payroll calculated successfully");
                 }
                 else
                 {
                     test.Fail("Failed to calculate Payroll");
+                    GenericMethods.CaptureScreenshot();
                     flag = false;
                 }
 
@@ -888,6 +839,7 @@ namespace WL.TestAuto
             catch (Exception ex)
             {
                 test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
+                GenericMethods.CaptureScreenshot();
                 EndTest();
                 //throw new Exception(ex.Message);
             }
@@ -907,15 +859,141 @@ namespace WL.TestAuto
                 else
                 {
                     test.Fail("Unable to find Payroll run status");
+                    GenericMethods.CaptureScreenshot();
                 }
             }
             catch (Exception ex)
             {
                 test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
+                GenericMethods.CaptureScreenshot();
                 EndTest();
                 //throw new Exception(ex.Message);
             }
             return status;
+        }
+
+        //Verify Payroll Run
+        public bool Fn_Verify_Payroll_Run_In_Payroll_Process(string processGroup, string runType, string runStatus)
+        {
+            bool flag = false;
+            try
+            {
+                if(processGroup!="")
+                {
+                    if (DrpDwn_ProcessGrp.GetAttribute("value").ToLower().Equals(processGroup.ToLower()))
+                    {
+                        flag = true;
+                    }
+                    else
+                    {   
+                        test.Fail("Required Process Group is not selected");
+                        GenericMethods.CaptureScreenshot();
+                        return false;
+                    }
+                }
+
+                if(runType!="")
+                {
+                    if (DrpDwn_RunType.GetAttribute("value").ToLower().Equals(runType.ToLower()))
+                    {
+                        flag = true;
+                    }
+                    else
+                    {   
+                        test.Fail("Required Run Type is not selected");
+                        GenericMethods.CaptureScreenshot();
+                        return false;
+                    }
+                }
+                
+                if(Fn_GetPayrollRunStatus().ToLower().Equals(runStatus.ToLower()))
+                {
+                    flag = true;
+                    test.Pass("Payroll Run status verified successfully");
+                }
+                else
+                {
+                    flag = false;
+                    test.Fail("Failed to verify Payroll run status. Actual : " + Fn_GetPayrollRunStatus() + " and Expected : " + runStatus);
+                    GenericMethods.CaptureScreenshot();
+                }
+            }
+            catch (Exception ex)
+            {
+                test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
+                GenericMethods.CaptureScreenshot();
+                EndTest();
+                //throw new Exception(ex.Message);
+            }
+            return flag;
+        }
+
+        //Undo Payroll calculation
+        public bool Fn_Undo_Payroll_Calculation()
+        {
+            bool flag = false;
+            WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(60));
+            try
+            {
+                if(!Fn_GetPayrollRunStatus().Equals("New"))
+                {
+                    Btn_UndoCalc.Click();
+                    wait.Until(drv => Lbl_PayrollStatus.Text == "New");
+                    if (Fn_GetPayrollRunStatus().Equals("New"))
+                    {
+                        flag = true;
+                        test.Pass("Undo Payroll calculation successful");
+                    }
+                    else
+                    {
+                        test.Fail("Undo payroll calculation failed");
+                        GenericMethods.CaptureScreenshot();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
+                GenericMethods.CaptureScreenshot();
+                EndTest();
+                //throw new Exception(ex.Message);
+            }
+            return flag;
+        }
+
+        //Post payroll
+        public bool Fn_Post_Calculated_Payroll_In_Payroll_Process()
+        {
+            bool flag = false;
+            try
+            {
+                if(Btn_Post.Exists(5))
+                {
+                    Btn_Post.Click();
+                    Thread.Sleep(2000);
+                    driver.SwitchTo().Alert().Accept();
+                    Thread.Sleep(10000);
+                    if (!Lbl_PayrollStatus.Exists(5))
+                    {
+                        test.Pass("Payroll posted successfully");
+                        flag = true;
+                    }
+                    else
+                    {
+                        test.Fail("Failed to post Payroll");
+                        GenericMethods.CaptureScreenshot();
+                    }
+                }
+                
+            }
+            catch (Exception ex)
+            {
+                test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
+                GenericMethods.CaptureScreenshot();
+                EndTest();
+                //throw new Exception(ex.Message);
+            }
+            return flag;
         }
 
         //verify Reports in Payroll process page
@@ -950,7 +1028,7 @@ namespace WL.TestAuto
                         if(report.Text.ToLower().Equals(reportName.ToLower()))
                         {
                             report.Click();
-                            Thread.Sleep(2000);
+                            Thread.Sleep(3000);
                             if (reportFormat != "")
                             {
                                 report.FindElement(By.XPath("./parent::*/parent::li//span[text()='" + reportFormat + "']")).Click();
@@ -965,9 +1043,10 @@ namespace WL.TestAuto
                             if(reportFormat.Equals("Excel"))
                             {
                                 Thread.Sleep(5000);
-                                SendKeys.SendWait(@"C:\Users\Public\Downloads\"+report+".xlsx");
+                                SendKeys.SendWait(@"C:\Users\Public\Downloads\"+report.Text+".xlsx");
                                 SendKeys.SendWait(@"{Enter}");
                                 Thread.Sleep(5000);
+                                flag = true;
                             }
                             else
                             {
@@ -988,6 +1067,7 @@ namespace WL.TestAuto
                                     }
                                     else
                                     {
+                                        GenericMethods.CaptureScreenshot();
                                         flag = false;
                                     }
                                     driver.SwitchTo().DefaultContent();
@@ -1003,19 +1083,422 @@ namespace WL.TestAuto
                 }
                 else
                 {
+                    GenericMethods.CaptureScreenshot();
                     flag = false;
                 }
             }
             catch (Exception ex)
             {
                 test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
+                GenericMethods.CaptureScreenshot();
                 EndTest();
                 //throw new Exception(ex.Message);
             }
             return flag;
         }
 
-        
+        //Verify list of reports under Payroll Payments screen
+        //reportNames: report1;report2;....
+        public bool Fn_Verify_ReportsDisplayed_In_Payroll_PaymentsTable(string reportNames)
+        {
+            Boolean flag = false;
+            WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(30));
+            try
+            {
+                Btn_Search.Click();
+                if (Tbl_PaymentsPayroll.Exists(10))
+                {
+                    if (Tbl_PaymentsPayroll.FindElements(By.XPath(".//tbody/tr")).Count > 0)
+                    {
+                        Tbl_PaymentsPayroll.FindElements(By.XPath(".//tbody/tr"))[0].Click();
+                    }
+                    else
+                    {
+                        test.Fail("No records exist in Payments table");
+                        GenericMethods.CaptureScreenshot();
+                        return false;
+                    }
+
+                    if (Tab_Reports.Exists(5) && Tab_Reports.Enabled)
+                    {
+                        Tab_Reports.Click();
+                        if (SubMenu_Standard.Exists(5))
+                        {
+                            SubMenu_Standard.Click();
+                        }
+                    }
+                    Thread.Sleep(2000);
+                    var parent = SubMenu_Standard.FindElement(By.XPath("./parent::*/parent::li"));
+                    Repeat:
+                    var reportListUI = parent.FindElements(By.XPath(".//li[@class='rmItem ']/a/span"));
+                    int failCnt = 0;
+                    if (reportNames != "" && reportListUI.Count > 0)
+                    {
+                        string[] reports = reportNames.Split(';');
+                        foreach (string report in reports)
+                        {
+                            //counter for individual report
+                            int count = 0;
+                            for (int r = 0; r < reportListUI.Count - 1; r++)
+                            {
+                                count++;
+                                if (report.ToLower().Equals(reportListUI[r].Text.ToLower()))
+                                {
+                                    reportListUI[r].Highlight();
+                                    test.Pass(report + " : Found");
+                                    flag = true;
+                                    break;
+                                }
+                            }
+                            /*if (cnt == 0)
+                            {
+                                failCnt++;
+                                test.Fail(report + " : Not Found");
+                                flag = false;
+                            }*/
+
+                            if (count == reportListUI.Count)
+                            {
+                                if (Btn_ScrollDownArrow.Exists(5))
+                                {
+                                    /*Actions action = new Actions(driver);
+                                    action.MoveToElement(Btn_ScrollDownArrow).Perform();*/
+                                    Btn_ScrollDownArrow.Click();
+                                    Thread.Sleep(2000);
+                                    goto Repeat;
+                                }
+                                failCnt++;
+                                test.Fail(report + " : Not Found");
+                                flag = false;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        GenericMethods.CaptureScreenshot();
+                        flag = false;
+                    }
+
+                    //if one report is not found return fail
+                    if (failCnt != 0)
+                    {
+                        GenericMethods.CaptureScreenshot(); flag = false;
+                    }
+                }
+
+            }
+            catch (Exception ex)
+            {
+                test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
+                GenericMethods.CaptureScreenshot();
+                EndTest();
+                //throw new Exception(ex.Message);
+            }
+            if (flag) test.Pass("All reports Available in UI");
+            else test.Fail("Report verification in UI failed");
+            return flag;
+        }
+
+        //Verify Reports in Payroll Payments Page
+        public bool Fn_Verify_Reports_In_Payroll_PaymentsTable(string processGroup, string runType, string reportType, string reportName, string reportFormat)
+        {
+            bool flag = false;
+            IWebElement parent;
+            WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(30));
+            try
+            {   
+
+                if(Fn_Search_Select_Latest_ProcessGroup_Payments(processGroup, runType))
+                {
+                    if (Tab_Reports.Exists(5) && Tab_Reports.Enabled)
+                    {
+                        Tab_Reports.Click();
+                        if (reportType.ToLower().Equals("standard"))
+                        {
+                            if (SubMenu_Standard.Exists(5)) SubMenu_Standard.Click();
+
+                            Thread.Sleep(2000);
+                            parent = SubMenu_Standard.FindElement(By.XPath("./parent::*/parent::li"));
+                        }
+                        else
+                        {
+                            if (SubMenu_Custom.Exists(5)) SubMenu_Custom.Click();
+                            Thread.Sleep(2000);
+                            parent = SubMenu_Custom.FindElement(By.XPath("./parent::*/parent::li"));
+                        }
+
+                        Repeat:
+                        var reportListUI = parent.FindElements(By.XPath(".//li[contains(@class,'rmItem')]/a/span"));
+                        int count = 0;
+                        foreach (var report in reportListUI)
+                        {
+                            count++;
+                            //if (report.Text.ToLower().Equals(reportName.ToLower()) || report.Text.Contains(reportName))
+                            if (report.Text.ToLower().Equals(reportName.ToLower()))
+                            {
+                                report.Click();
+                                Thread.Sleep(3000);
+
+                                if (reportFormat != "")
+                                {
+                                    var typeList = report.FindElements(By.XPath("./ancestor::div[@class='rmScrollWrapContainer']/following::div//span[text()='" + reportFormat + "']"));
+                                    if (typeList.Count == 0)
+                                    {
+                                        typeList = report.FindElements(By.XPath("./ancestor::li[contains(@class,'rmItem')]//div//span[text()='" + reportFormat + "']"));
+                                    }
+                                    foreach (var type in typeList)
+                                    {
+                                        if (type.Displayed && type.Size.Height > 0)
+                                        {
+                                            type.Click();
+                                            break;
+                                        }
+                                    }
+                                    Thread.Sleep(2000);
+                                }
+                                else
+                                {
+                                    var typeList = report.FindElements(By.XPath("./ancestor::div[@class='rmScrollWrapContainer']/following::div//span[text()='PDF']"));
+                                    foreach (var type in typeList)
+                                    {
+                                        if (type.Displayed && type.Size.Height > 0)
+                                        {
+                                            type.Click();
+                                            break;
+                                        }
+                                    }
+                                    Thread.Sleep(2000);
+                                }
+
+                                if (reportFormat.Equals("Excel"))
+                                {
+                                    Thread.Sleep(5000);
+                                    string fileSavePath = @"C:\Users\" + Environment.UserName + "\\Downloads\\" + report.Text + DateTime.Now.ToString() + ".xls";
+                                    if(GenericMethods.SaveFileFromDialog(fileSavePath))
+                                    {
+                                        test.Info("Excel Saved successfully");
+                                    }
+                                    /*else if(AutoItX.WinExists("WorkLinks - Google Chrome", "") !=0)
+                                    {
+                                        AutoItX.ControlFocus("WorkLinks - Google Chrome", "", "Downloads bar");
+                                        AutoItX.ControlClick("WorkLinks - Google Chrome", "", "Options menu", "left");
+                                        string text = AutoItX.ControlGetText("WorkLinks - Google Chrome", "", "Options menu");
+                                    }*/
+                                    else
+                                    {
+                                        var directory = new DirectoryInfo(@"C:\Users\" + Environment.UserName + "\\Downloads\\");
+                                        var myFile = directory.GetFiles()
+                                                        .OrderByDescending(f => f.LastWriteTime)
+                                                        .First();
+
+                                        string newReportName = report.Text
+                                            .Replace(".", "")
+                                            .Replace("/", "")
+                                            .Replace(" ", "")
+                                            .Replace("-", "");
+                                        if (myFile.Name.Contains(newReportName))
+                                        {
+                                            flag = true;
+                                        }
+                                        else
+                                        {
+                                            flag = true;
+                                        }
+                                    }
+
+                                    /*SendKeys.SendWait(@"C:\Users\Public\Downloads\" + report.Text + ".xlsx");
+                                    SendKeys.SendWait(@"{Enter}");*/
+                                    Thread.Sleep(5000);
+                                }
+                                else
+                                {
+                                    if (Win_PDFReportLoad.Exists(5))
+                                    {
+                                        if (wait.Until(driver => Win_PDFReport.Exists(150)))
+                                        {
+                                            flag = true;
+                                        }
+                                    }
+
+                                    if (Win_PDFReport.Exists(10))
+                                    {
+                                        driver.SwitchTo().Frame(Frame_PDFReport);
+                                        if (driver.FindElements(By.XPath("*//embed[@type='application/pdf']")).Count > 0)
+                                        {
+                                            flag = true;
+                                        }
+                                        else
+                                        {
+                                            GenericMethods.CaptureScreenshot();
+                                            flag = false;
+                                        }
+                                        driver.SwitchTo().DefaultContent();
+                                        Btn_CloseX.Click();
+                                    }
+                                }
+
+                                break;
+                            }
+
+                            if (count == reportListUI.Count)
+                            {
+                                if (Btn_ScrollDownArrow.Exists(5))
+                                {
+                                    /*Actions action = new Actions(driver);
+                                    action.MoveToElement(Btn_ScrollDownArrow).Perform();*/
+                                    Btn_ScrollDownArrow.Click();
+                                    Thread.Sleep(2000);
+                                    goto Repeat;
+                                }
+                                flag = false;
+                            }
+                        }
+
+
+                    }
+                    else
+                    {
+                        GenericMethods.CaptureScreenshot();
+                        flag = false;
+                    }
+                }
+                else
+                {
+                    test.Fail("Unable to select latest Payroll Process Group");
+                    flag = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
+                GenericMethods.CaptureScreenshot();
+                EndTest();
+                //throw new Exception(ex.Message);
+            }
+            return flag;
+        }
+
+        //Search and select latest processgroup 
+        public bool Fn_Search_Select_Latest_ProcessGroup_Payments(string processGroup, string runType)
+        {
+            bool flag = false;
+            try
+            {
+                if (processGroup != "")
+                {
+                    DrpDwn_ProcessGrp.SelectValueFromDropDown(List_AllDrpDwn, processGroup);
+                }
+                else
+                {
+                    test.Fail("Process Group can not be null");
+                    return false;
+                }
+
+                if (runType != "")
+                {
+                    DrpDwn_RunType.SelectValueFromDropDown(List_AllDrpDwn, runType);
+                }
+
+                Btn_Search.Click();
+
+                if (Tbl_PaymentsPayroll.Exists(10))
+                {
+                    var trList = Tbl_PaymentsPayroll.FindElements(By.XPath(".//tbody/tr"));
+                    if (trList.Count > 0)
+                    {
+                        foreach (IWebElement tr in trList)
+                        {
+                            if (tr.FindElements(By.XPath(".//td[text()='" + processGroup + "']")).Count > 0)
+                            {
+                                tr.Click();
+                                flag = true;
+                                break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        test.Fail("No records exist in Payments table");
+                        GenericMethods.CaptureScreenshot();
+                        flag = false;
+                    }
+                }
+                else
+                {
+                    test.Fail("Payments table does not exist");
+                    GenericMethods.CaptureScreenshot();
+                    flag = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
+                GenericMethods.CaptureScreenshot();
+                EndTest();
+                //throw new Exception(ex.Message);
+            }
+
+
+            return flag;
+        }
+
+        //Save Mass payslip file and verify
+        public bool Fn_Save_Mass_Payslip_File_And_Verify(string processGroup, string runType, string payslipPath, string payslipName)
+        {
+            bool flag = false;
+            try
+            {
+                if(Fn_Search_Select_Latest_ProcessGroup_Payments(processGroup, runType))
+                {
+                    if(File.Exists(payslipPath + payslipName))
+                    {
+                        File.Delete(payslipPath + payslipName);
+                    }
+
+                    if (Directory.Exists((payslipPath + payslipName).Replace(".zip", "")))
+                    {
+                        Directory.Delete((payslipPath + payslipName).Replace(".zip", ""), true); //remove folder and sub folder
+                    }
+
+                    if (Tab_MassPayslipFile.Exists(10))
+                    {
+                        Tab_MassPayslipFile.Click();
+                        if(GenericMethods.SaveFileFromDialog(payslipPath + payslipName, 60))
+                        {
+                            if(GenericMethods.ExtractZipFile(payslipPath + payslipName, (payslipPath + payslipName).Replace(".zip","")))
+                            {
+                                flag = true;
+                                test.Pass("Mass Payslip file saved, extracted and verified successfully");
+                            }
+                            else
+                            {
+                                test.Fail("Failed to Extract or verify Zip file content");
+                            }
+                        }
+                        else
+                        {
+                            test.Fail("Failed to Save file from Browser");
+                        }
+                    }
+                }
+                else
+                {
+                    test.Fail("Failed to select payroll process group record");
+                }
+            }
+            catch (Exception ex)
+            {
+                test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
+                GenericMethods.CaptureScreenshot();
+                EndTest();
+                //throw new Exception(ex.Message);
+            }
+            return flag;
+        }
+
+
+
+
 
         #endregion
     }

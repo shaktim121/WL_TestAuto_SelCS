@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Xml;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -23,12 +24,29 @@ using iText.Kernel.Pdf.Canvas.Parser;
 using iText.Kernel.Pdf.Canvas.Parser.Listener;
 using iText.Kernel.Pdf.Tagging;
 using iText.Kernel.Pdf.Tagutils;
+using AutoIt;
+using System.Windows.Forms;
+using System.IO;
+using System.Runtime.InteropServices;
+using System.IO.Compression;
 
 namespace WL.TestAuto
 {
     public static class GenericMethods
     {
-        //private static readonly IWebDriver driver = Browsers.GetDriver;
+        #region Test Utilities
+        //Method to take screenshot
+        public static void CaptureScreenshot()
+        {
+            try
+            {
+                ((ITakesScreenshot)Browsers.GetDriver).GetScreenshot().SaveAsFile(AutomationCore.reportFolder + "\\" + "Capture_" + Utilities.GetTimeStamp(DateTime.Now) + ".png", ScreenshotImageFormat.Png);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message + " " + ex.StackTrace);
+            }
+        }
 
         //Extension for Get Data from app.config
         public static string AppSettings(this string Key)
@@ -39,6 +57,43 @@ namespace WL.TestAuto
             return val;
         }
 
+        //Highlight method
+        public static void Highlight(this IWebElement element)
+        {
+            try
+            {
+                IJavaScriptExecutor jsDriver = (IJavaScriptExecutor)Browsers.GetDriver;
+                /*string brWidth = element.GetCssValue("border-width");
+                string brStyle = element.GetCssValue("border-style");
+                string brColor = element.GetCssValue("border-color");
+                string bgColor = element.GetCssValue("background");*/
+                string highlightJavascript = @"arguments[0].style.cssText = ""border-width: 3px; border-style: solid; border-color: red; background: yellow"";";
+                string clearHighlight = @"arguments[0].style.cssText = ""border-width: 0px; border-style: solid; border-color: red; background: none"";";
+
+                for (int i = 0; i < 3; i++)
+                {
+                    jsDriver.ExecuteScript(highlightJavascript, new object[] { element });
+                    Thread.Sleep(100);
+                    jsDriver.ExecuteScript(clearHighlight, new object[] { element });
+                    Thread.Sleep(100);
+                }
+                //JQuery
+                /*string highlightJavascript = @"$(arguments[0]).css({ ""border-width"" : ""3px"", ""border-style"" : ""solid"", ""border-color"" : ""red"", ""background"" : ""yellow"" });";*/
+
+                jsDriver = null;
+                //driver = Browsers.GetDriver;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message + " " + ex.StackTrace);
+            }
+
+            Thread.Sleep(1000);
+        }
+
+        #endregion
+
+        #region Object actions/Operations
         //Clear text from text field
         public static void ClearText(this IWebElement element)
         {
@@ -46,8 +101,8 @@ namespace WL.TestAuto
             {
                 if (element.Exists(5))
                 {
-                    element.SendKeys(Keys.Control + "A" + Keys.Control);
-                    element.SendKeys(Keys.Delete);
+                    element.SendKeys(OpenQA.Selenium.Keys.Control + "A" + OpenQA.Selenium.Keys.Control);
+                    element.SendKeys(OpenQA.Selenium.Keys.Delete);
                 }
             }
             catch (Exception ex)
@@ -140,40 +195,6 @@ namespace WL.TestAuto
                 flag = true;
             }
             return flag;
-        }
-
-        //Highlight method
-        public static void Highlight(this IWebElement element)
-        {
-            try
-            {
-                IJavaScriptExecutor jsDriver = (IJavaScriptExecutor)Browsers.GetDriver;
-                /*string brWidth = element.GetCssValue("border-width");
-                string brStyle = element.GetCssValue("border-style");
-                string brColor = element.GetCssValue("border-color");
-                string bgColor = element.GetCssValue("background");*/
-                string highlightJavascript = @"arguments[0].style.cssText = ""border-width: 3px; border-style: solid; border-color: red; background: yellow"";";
-                string clearHighlight = @"arguments[0].style.cssText = ""border-width: 0px; border-style: solid; border-color: red; background: none"";";
-
-                for (int i = 0; i < 3; i++)
-                {
-                    jsDriver.ExecuteScript(highlightJavascript, new object[] { element });
-                    Thread.Sleep(100);
-                    jsDriver.ExecuteScript(clearHighlight, new object[] { element });
-                    Thread.Sleep(100);
-                }
-                //JQuery
-                /*string highlightJavascript = @"$(arguments[0]).css({ ""border-width"" : ""3px"", ""border-style"" : ""solid"", ""border-color"" : ""red"", ""background"" : ""yellow"" });";*/
-                
-                jsDriver = null;
-                //driver = Browsers.GetDriver;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message + " " + ex.StackTrace);
-            }
-
-            Thread.Sleep(1000);
         }
 
         //Select check boxes from list
@@ -424,11 +445,131 @@ namespace WL.TestAuto
             }
             return colNum;
         }
-        
-        //Save Reports
-        public static void SaveReport()
-        {
 
+        //Select Date from Calendar popup
+        public static bool SelectDateFromCalendarPopup(this IWebElement calendarObj, string date)
+        {
+            bool flag = false;
+            IWebDriver driver = Browsers.GetDriver;
+            string day = date.Split('/')[1];
+            try
+            {
+                if (calendarObj.Exists(10))
+                {
+                    calendarObj.Click();
+                    IWebElement calMain = driver.FindElement(By.XPath("*//table[@class='RadCalendar RadCalendar_Silk']"));
+                    if (calMain.Exists())
+                    {
+                        Thread.Sleep(1000);
+                        IWebElement calTitle = driver.FindElement(By.XPath("*//td[@class='rcTitle']"));
+
+                        if (date.Equals(DateTime.Now.ToString("M/d/yyyy")))
+                        {
+                            calTitle.Click();
+                            IWebElement btnToday = driver.FindElement(By.XPath("*//input[@type='button' and @value='Today']"));
+                            if (btnToday.Exists(10))
+                            {
+                                btnToday.Click();
+                            }
+                            Thread.Sleep(2000);
+                            calMain.FindElement(By.XPath(".//td/a[text()='" + day + "']")).Click();
+                            flag = true;
+
+                        }
+                        flag = true;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message + " " + ex.StackTrace);
+            }
+
+            return flag;
+        }
+
+        #endregion
+
+        #region File System Operations
+        //Save Reports
+        public static bool SaveFileFromDialog(string fileSavePath, [Optional] int waitTimeSec)
+        {
+            bool flag = false;
+            try
+            {
+
+                if (AutoItX.WinWaitActive("Save As", "", 10) != 0)
+                {
+                    AutoItX.Send(fileSavePath);
+                    SendKeys.SendWait(@"{Enter}");
+                    //Thread.Sleep(TimeSpan.FromSeconds(waitTime));
+                }
+
+                if(waitTimeSec == 0)
+                {
+                    waitTimeSec = 10;
+                }
+
+                while(waitTimeSec != 0)
+                {
+                    if(File.Exists(fileSavePath))
+                    {
+                        flag = true;
+                        break;
+                    }
+                    else
+                    {
+                        Thread.Sleep(1000);
+                        waitTimeSec -= 1;
+                    }
+                    if(waitTimeSec == 0)
+                    {
+                        flag = false;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message + " " + ex.StackTrace);
+            }
+            return flag;
+        }
+
+        //Zip File Exctract
+        public static bool ExtractZipFile(string sourceFile, string destFolder)
+        {
+            bool flag = false;
+            try
+            {
+                if(sourceFile!="" && destFolder!="")
+                {
+                    ZipFile.ExtractToDirectory(sourceFile, destFolder);
+                    if (Directory.Exists(destFolder))
+                    {
+                        var dirs = Directory.GetDirectories(destFolder);
+                        var files = Directory.GetFiles(destFolder);
+
+                        if (dirs.Length != 0 || files.Length != 0)
+                        {
+                            flag = true;
+                        }
+                        else
+                        {
+                            flag = false;
+                        }
+                    }
+                }
+                else
+                {
+                    flag = false;
+                }
+                
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message + " " + ex.StackTrace);
+            }
+            return flag;
         }
         
         //Read from PDF
@@ -454,46 +595,29 @@ namespace WL.TestAuto
             return text.ToString();
         }
 
-        //Select Date from Calendar popup
-        public static bool SelectDateFromCalendarPopup(this IWebElement calendarObj, string date)
+        //Rea From XML File with node value
+        public static string GetXMLNodeValue(string XMLFilePath, string nodeName)
         {
-            bool flag = false;
-            IWebDriver driver = Browsers.GetDriver;
-            string day = date.Split('/')[1];
+            string nodeValue = string.Empty;
             try
             {
-                if (calendarObj.Exists(10))
-                {
-                    calendarObj.Click();
-                    IWebElement calMain = driver.FindElement(By.XPath("*//table[@class='RadCalendar RadCalendar_Silk']"));
-                    if (calMain.Exists())
-                    {
-                        Thread.Sleep(1000);
-                        IWebElement calTitle = driver.FindElement(By.XPath("*//td[@class='rcTitle']"));
-                        
-                        if (date.Equals(DateTime.Now.ToString("MM/dd/yyyy")))
-                        {
-                            calTitle.Click();
-                            IWebElement btnToday = driver.FindElement(By.XPath("*//input[@type='button' and @value='Today']"));
-                            if (btnToday.Exists(10))
-                            {
-                                btnToday.Click();
-                            }
-                            Thread.Sleep(2000);
-                            calMain.FindElement(By.XPath(".//td/a[text()='"+day+"']")).Click();
-                            flag = true;
+                XmlDocument xml = new XmlDocument();
+                xml.Load(XMLFilePath);
 
-                        }
-                        flag = true;
-                    }
-                }
+                XmlNode node = xml.GetElementsByTagName(nodeName)[0];
+                nodeValue = node.InnerText;
             }
             catch (Exception ex)
             {
                 throw new Exception(ex.Message + " " + ex.StackTrace);
             }
 
-            return flag;
+            return nodeValue;
         }
+
+
+        #endregion
+
+
     }
 }
