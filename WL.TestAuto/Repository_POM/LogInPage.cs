@@ -103,12 +103,11 @@ namespace WL.TestAuto
         #endregion
 
         #region LogIn page reusable methods
-        public bool Fn_LogInToApplication()
+        public bool Fn_LogInToApplication(string user, string pwd)
         {
             Boolean flag = false;
-            string user = "user".AppSettings();
-            string pwd = "pwd".AppSettings();
-            string url = "url".AppSettings();
+            //string user = "user".AppSettings();
+            //string pwd = "pwd".AppSettings();
 
             try
             {
@@ -158,11 +157,13 @@ namespace WL.TestAuto
                 if (!lblUserText.ToLower().Contains(user.ToLower()))
                 {
                     test.Fail("Failed to verify Signed in user in Landing Page");
+                    test.Fail("Login to application Failed");
                     GenericMethods.CaptureScreenshot();
                     flag = false;
                 }
                 else
                 {
+                    test.Pass("Login to application successful");
                     flag = true;
                 }
             }
@@ -173,16 +174,7 @@ namespace WL.TestAuto
                 throw new Exception(ex.Message);
             }
             //Change it to Explicit wait later
-            Thread.Sleep(5000);
-            if(flag)
-            {
-                test.Pass("Login to application successful");
-            }
-            else
-            {
-                test.Fail("Login to application Failed");
-                GenericMethods.CaptureScreenshot();
-            }
+            Thread.Sleep(2000);
             return flag;
         }
 

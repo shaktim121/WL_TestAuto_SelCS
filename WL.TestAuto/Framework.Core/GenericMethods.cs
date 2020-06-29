@@ -29,6 +29,11 @@ using System.Windows.Forms;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.IO.Compression;
+using AventStack.ExtentReports.Model;
+using Org.BouncyCastle.Bcpg.OpenPgp;
+using AventStack.ExtentReports.Gherkin.Model;
+using RazorEngine.Compilation.ImpromptuInterface;
+using System.Globalization;
 
 namespace WL.TestAuto
 {
@@ -99,7 +104,7 @@ namespace WL.TestAuto
         {
             try
             {
-                if (element.Exists(5))
+                if (element.Exists())
                 {
                     element.SendKeys(OpenQA.Selenium.Keys.Control + "A" + OpenQA.Selenium.Keys.Control);
                     element.SendKeys(OpenQA.Selenium.Keys.Delete);
@@ -116,7 +121,7 @@ namespace WL.TestAuto
         {
             try
             {
-                if (element.Exists(5))
+                if (element.Exists())
                 {
                     element.Clear();
                     element.SendKeys(text);
@@ -129,25 +134,45 @@ namespace WL.TestAuto
         }
 
         //Exists method
-        public static bool Exists(this IWebElement element)
+        public static bool Exists(this IWebElement element, [Optional] double timeOutSec, [Optional] double polling)
         {
             Boolean flag = false;
             try
             {
-                if (element.Displayed && element.Size.Height > 0)
+                if(timeOutSec == 0 && polling == 0)
+                {
+                    timeOutSec = 30;
+                    polling = .5;
+                }
+
+                DefaultWait<IWebDriver> wait = new DefaultWait<IWebDriver>(Browsers.GetDriver)
+                {
+                    /* Setting the timeout in seconds */
+                    Timeout = TimeSpan.FromSeconds(timeOutSec),
+                    /* Configuring the polling frequency in ms */
+                    PollingInterval = TimeSpan.FromMilliseconds(polling),
+                    Message = "Element to be searched not found"
+                };
+                /* Ignore the exception - NoSuchElementException that indicates that the element is not present */
+                wait.IgnoreExceptionTypes(typeof(NoSuchElementException), typeof(InvalidOperationException));
+
+                if (wait.Until(x => element.Displayed && element.Size.Height > 0))
                 {
                     flag = true;
                 }
+                
+
             }
             catch (Exception ex)
             {
-                throw new Exception(ex.Message + " " + ex.StackTrace);
+                return false;
+                //throw new Exception(ex.Message + " " + ex.StackTrace);
             }
             return flag;
         }
 
         //Exists method - Overload with timeout
-        public static bool Exists(this IWebElement element, int timeoutSeconds)
+        public static bool Exists(this IWebElement element, double timeoutSeconds)
         {
             Boolean flag = false;
             try
@@ -186,7 +211,7 @@ namespace WL.TestAuto
             {
                 flag = true;
             }
-            catch(TimeoutException)
+            catch (TimeoutException)
             {
                 flag = true;
             }
@@ -204,15 +229,15 @@ namespace WL.TestAuto
             try
             {
                 string[] chkValues = valueList.Split(';');
-                foreach(string chk in chkValues)
+                foreach (string chk in chkValues)
                 {
                     IReadOnlyList<IWebElement> chkTags = element.FindElements(By.XPath(".//ul/li//span[@class='rlbText']"));
-                    for(int i=0; i<chkTags.Count; i++)
+                    for (int i = 0; i < chkTags.Count; i++)
                     {
                         //if name matches then select corresponding check box
-                        if(chkTags[i].Text == chk)
+                        if (chkTags[i].Text == chk)
                         {
-                            if(chkTags[i].FindElement(By.XPath("./parent::*/input")).Selected == !check)
+                            if (chkTags[i].FindElement(By.XPath("./parent::*/input")).Selected == !check)
                             {
                                 chkTags[i].FindElement(By.XPath("./parent::*/input")).Click();
                                 flag = true;
@@ -224,8 +249,8 @@ namespace WL.TestAuto
                                 break;
                             }
                         }
-                        
-                        if(i==chkTags.Count-1)
+
+                        if (i == chkTags.Count - 1)
                         {
                             flag = false;
                             break;
@@ -240,11 +265,13 @@ namespace WL.TestAuto
             }
             return flag;
         }
-        
+
         //Method to select value from dropdown (Dropdown with Arrow v)
-        public static bool SelectValueFromDropDown(this IWebElement SelectionObject, IWebElement dropDown, string value)
+        public static bool SelectValueFromDropDown(this IWebElement SelectionObject, string value)
         {
             Boolean flag = false;
+            WebDriverWait eWait = new WebDriverWait(Browsers.GetDriver, TimeSpan.FromSeconds(10));
+            By List_AllDrpDwn = By.XPath("*//div[contains(@class,'RadComboBoxDropDown') and contains(@style,'display: block')]");
             try
             {
                 Assert.IsTrue(SelectionObject.Exists(), "Dropdown exists in the page");
@@ -254,12 +281,14 @@ namespace WL.TestAuto
                 if (!val_act.ToLower().Contains(value.ToLower()))
                 {
                     SelectionObject.Click();
+
+                    IWebElement dropDown = Browsers.GetDriver.FindElement(List_AllDrpDwn);
                     if (!dropDown.Displayed)
                     {
                         SelectionObject.Click();
                     }
-                    Assert.IsTrue(dropDown.Displayed, "List Displayed");
                     Thread.Sleep(2000);
+                    Assert.IsTrue(dropDown.Displayed, "List Displayed");
                     IReadOnlyList<IWebElement> dlist = dropDown.FindElements(By.TagName("li"));
 
                     foreach (IWebElement li in dlist)
@@ -367,13 +396,13 @@ namespace WL.TestAuto
             }
             return flag;
         }
-        
+
         //Verify if records available in table
         public static bool VerifyRecordDisplayedInTable(this IWebElement table, bool isTableEmpty)
         {
             Boolean flag = false;
             try
-            {   
+            {
                 if (isTableEmpty)
                 {
                     IReadOnlyList<IWebElement> noElement = Browsers.GetDriver.FindElements(By.XPath("*//table//*[contains(text(),\"No records to display\")]"));
@@ -385,7 +414,7 @@ namespace WL.TestAuto
                 }
                 else
                 {
-                    if(table.Exists(20))
+                    if (table.Exists(20))
                     {
                         Thread.Sleep(5000);
                         IReadOnlyList<IWebElement> rows = table.FindElements(By.XPath("./tbody/tr[contains(@class,'rgRow') or contains(@class,'rgAltRow')]"));
@@ -410,23 +439,23 @@ namespace WL.TestAuto
             int colNum = -1;
             try
             {
-                if(table.Exists(10))
+                if (table.Exists(10))
                 {
                     IReadOnlyList<IWebElement> thTags = table.FindElements(By.XPath("./thead/tr/th[contains(@class,'rgHeader')]"));
-                    
+
                     foreach (IWebElement thTag in thTags)
                     {
                         colNum++;
                         if (!thTag.Text.Equals(""))
                         {
-                            if(thTag.Text.ToLower().Equals(columnName.ToLower()))
+                            if (thTag.Text.ToLower().Equals(columnName.ToLower()))
                             {
                                 break;
                             }
                         }
-                        else if(!thTag.FindElement(By.TagName("a")).Text.Equals(""))
+                        else if (!thTag.FindElement(By.TagName("a")).Text.Equals(""))
                         {
-                            if(thTag.FindElement(By.TagName("a")).Text.ToLower().Equals(columnName.ToLower()))
+                            if (thTag.FindElement(By.TagName("a")).Text.ToLower().Equals(columnName.ToLower()))
                             {
                                 break;
                             }
@@ -436,7 +465,7 @@ namespace WL.TestAuto
                             continue;
                         }
                     }
-                    
+
                 }
             }
             catch (Exception ex)
@@ -451,7 +480,18 @@ namespace WL.TestAuto
         {
             bool flag = false;
             IWebDriver driver = Browsers.GetDriver;
-            string day = date.Split('/')[1];
+            date = date.Replace('-', '/');
+            //date = Convert.ToDateTime(date).AddDays(1).ToString("M/d/yyyy");
+            DateTime givenDate = Convert.ToDateTime(date);
+
+            string dayOfWeek = givenDate.DayOfWeek.ToString();
+            string month = givenDate.ToString("MMM");
+            string year = givenDate.Year.ToString();
+            string day = givenDate.Day.ToString();
+            //string fullDate = givenDate.ToString("D", CultureInfo.CreateSpecificCulture("en-US")); //Saturday, June 6, 2020
+            string fullDate = dayOfWeek + ", " + givenDate.ToString("MMMM") + " " + givenDate.ToString("dd") + ", " + year; //Friday, June 05, 2020
+
+
             try
             {
                 if (calendarObj.Exists(10))
@@ -476,6 +516,39 @@ namespace WL.TestAuto
                             flag = true;
 
                         }
+                        else
+                        {
+                            calTitle.Click();
+                            if (driver.FindElements(By.XPath(".//td/a[text()='" + month + "']")).Count > 0 && driver.FindElements(By.XPath(".//td/a[text()='" + year + "']")).Count > 0)
+                            {
+                                driver.FindElement(By.XPath(".//td/a[text()='" + month + "']")).Click();
+                                Thread.Sleep(1000);
+                                driver.FindElement(By.XPath(".//td/a[text()='" + year + "']")).Click();
+                                Thread.Sleep(1000);
+                                driver.FindElement(By.Id("rcMView_OK")).Click();
+                                Thread.Sleep(1000);
+
+                                //if (driver.FindElements(By.XPath(".//td[@title='" + fullDate + "']")).Count > 0 || driver.FindElements(By.XPath(".//td/span[text()='"+day+"']")).Count > 0)
+                                if (driver.FindElements(By.XPath(".//td/*[text()='"+day+"']")).Count > 0)
+                                {
+                                    var selectDate = driver.FindElement(By.XPath(".//td/*[text()='" + day + "']/parent::td"));
+                                    while (selectDate.GetAttribute("class").Contains("rcWeekend") || selectDate.GetAttribute("class").Contains("rcOutOfRange"))
+                                    {
+                                        date = Convert.ToDateTime(date).AddDays(1).ToString("M/d/yyyy");
+                                        givenDate = Convert.ToDateTime(date);
+                                        day = givenDate.Day.ToString();
+                                        fullDate = givenDate.DayOfWeek.ToString() + ", " + givenDate.ToString("MMMM") + " " + givenDate.ToString("dd") + ", " + year;
+                                        selectDate = driver.FindElement(By.XPath(".//td/*[text()='" + day + "']/parent::td"));
+                                    }
+
+                                    selectDate.Click();
+                                    if (calMain.Exists(5)) calendarObj.Click();
+                                    Thread.Sleep(2000);
+                                }
+
+                            }
+                        }
+                        
                         flag = true;
                     }
                 }
@@ -488,11 +561,52 @@ namespace WL.TestAuto
             return flag;
         }
 
+        //public static bool SelectDateFromCalendarPopup(this IWebElement calendarObj, string date)
+        //{
+        //    bool flag = false;
+        //    IWebDriver driver = Browsers.GetDriver;
+        //    string day = date.Replace('-', '/').Split('/')[1];
+        //    try
+        //    {
+        //        if (calendarObj.Exists(10))
+        //        {
+        //            calendarObj.Click();
+        //            IWebElement calMain = driver.FindElement(By.XPath("*//table[@class='RadCalendar RadCalendar_Silk']"));
+        //            if (calMain.Exists())
+        //            {
+        //                Thread.Sleep(1000);
+        //                IWebElement calTitle = driver.FindElement(By.XPath("*//td[@class='rcTitle']"));
+
+        //                if (date.Equals(DateTime.Now.ToString("M/d/yyyy")))
+        //                {
+        //                    calTitle.Click();
+        //                    IWebElement btnToday = driver.FindElement(By.XPath("*//input[@type='button' and @value='Today']"));
+        //                    if (btnToday.Exists(10))
+        //                    {
+        //                        btnToday.Click();
+        //                    }
+        //                    Thread.Sleep(2000);
+        //                    calMain.FindElement(By.XPath(".//td/a[text()='" + day + "']")).Click();
+        //                    flag = true;
+
+        //                }
+        //                flag = true;
+        //            }
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        throw new Exception(ex.Message + " " + ex.StackTrace);
+        //    }
+
+        //    return flag;
+        //}
+
         #endregion
 
         #region File System Operations
         //Save Reports
-        public static bool SaveFileFromDialog(string fileSavePath, [Optional] int waitTimeSec)
+        public static bool SaveFileFromDialog(string filePath, string fileName, [Optional] int waitTimeSec)
         {
             bool flag = false;
             try
@@ -500,19 +614,19 @@ namespace WL.TestAuto
 
                 if (AutoItX.WinWaitActive("Save As", "", 10) != 0)
                 {
-                    AutoItX.Send(fileSavePath);
+                    AutoItX.Send(filePath+"\\"+fileName);
                     SendKeys.SendWait(@"{Enter}");
                     //Thread.Sleep(TimeSpan.FromSeconds(waitTime));
                 }
 
-                if(waitTimeSec == 0)
+                if (waitTimeSec == 0)
                 {
-                    waitTimeSec = 10;
+                    waitTimeSec = 30;
                 }
 
-                while(waitTimeSec != 0)
+                while (waitTimeSec != 0)
                 {
-                    if(File.Exists(fileSavePath))
+                    if (WaitForFileExists(filePath, fileName, waitTimeSec))
                     {
                         flag = true;
                         break;
@@ -522,7 +636,7 @@ namespace WL.TestAuto
                         Thread.Sleep(1000);
                         waitTimeSec -= 1;
                     }
-                    if(waitTimeSec == 0)
+                    if (waitTimeSec == 0)
                     {
                         flag = false;
                     }
@@ -541,7 +655,7 @@ namespace WL.TestAuto
             bool flag = false;
             try
             {
-                if(sourceFile!="" && destFolder!="")
+                if (sourceFile != "" && destFolder != "")
                 {
                     ZipFile.ExtractToDirectory(sourceFile, destFolder);
                     if (Directory.Exists(destFolder))
@@ -563,7 +677,7 @@ namespace WL.TestAuto
                 {
                     flag = false;
                 }
-                
+
             }
             catch (Exception ex)
             {
@@ -571,7 +685,7 @@ namespace WL.TestAuto
             }
             return flag;
         }
-        
+
         //Read from PDF
         public static string GetTextFromPDF(string PDFFileName)
         {
@@ -591,11 +705,11 @@ namespace WL.TestAuto
             {
                 throw new Exception(ex.Message + " " + ex.StackTrace);
             }
-            
+
             return text.ToString();
         }
 
-        //Rea From XML File with node value
+        //Read From XML File with node value
         public static string GetXMLNodeValue(string XMLFilePath, string nodeName)
         {
             string nodeValue = string.Empty;
@@ -613,6 +727,74 @@ namespace WL.TestAuto
             }
 
             return nodeValue;
+        }
+
+        //Delete files from directory with filename
+        public static bool DeleteFilesFromDirectory(string path, string file)
+        {
+            try
+            {
+                //Delete files if any
+                if (Directory.EnumerateFiles(path, "*"+file+"*").Any())
+                {
+                    var AllFiles = Directory.EnumerateFiles(path, "*" + file + "*").ToList();
+                    foreach (var files in AllFiles)
+                    {
+                        File.Delete(files);
+                    }
+                }
+                Thread.Sleep(TimeSpan.FromSeconds(2));
+                if(Directory.EnumerateFiles(path, "*" + file + "*").Any())
+                {
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message + " " + ex.StackTrace);
+            }
+            return true;
+        }
+
+        //Wait for file Exist/downloaded
+        public static bool WaitForFileExists(string path, string file, [Optional] int timeOut)
+        {
+            bool flag = false;
+            int cnt = 0;
+            try
+            {
+                if (timeOut == 0) timeOut = 30;
+                while (!(Directory.EnumerateFiles(path, "*"+file+"*").Any()))
+                {
+                    cnt++;
+                    Thread.Sleep(2000); // Polling for 2 seconds
+                    if (cnt == timeOut)
+                    {
+                        break;
+                    }
+                }
+
+                if (Directory.EnumerateFiles(path, "*" + file + "*").Any())
+                {
+                    flag = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message + " " + ex.StackTrace);
+            }
+            return flag;
+        }
+
+        //Get last modified file from Directory
+        public static string GetLastModifiedFile(string path)
+        {
+            var directory = new DirectoryInfo(path);
+            var myFile = directory.GetFiles()
+                            .OrderByDescending(f => f.LastWriteTime)
+                            .First();
+
+            return myFile.Name;
         }
 
 

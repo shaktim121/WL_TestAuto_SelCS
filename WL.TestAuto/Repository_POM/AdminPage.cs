@@ -52,13 +52,13 @@ namespace WL.TestAuto
 
         [FindsBy(How = How.XPath, Using = "*//table[contains(@class,'rgMasterTable') and contains(@id,\"MainContent_CodeSystemControl1_CodeSystemGrid\")]")]
         private IWebElement Tbl_CodeSystem { get; set; }
-        
+
         [FindsBy(How = How.XPath, Using = "*//table[contains(@class,'rgMasterTable') and @id='ctl00_MainContent_FieldEditorControl1_FormGrid_ctl00']")]
         private IWebElement Tbl_FieldEditor { get; set; }
 
         [FindsBy(How = How.XPath, Using = "*//table[contains(@class,'rgMasterTable') and @id='ctl00_MainContent_FormSearchControl1_FormSummaryGrid_ctl00']")]
         private IWebElement Tbl_LangEditor { get; set; }
-        
+
         [FindsBy(How = How.XPath, Using = "*//table[contains(@class,'rgMasterTable') and @id='ctl00_MainContent_ExportFtpControl1_ExportFtpGrid_ctl00']")]
         private IWebElement Tbl_ExportFTP { get; set; }
 
@@ -401,29 +401,29 @@ namespace WL.TestAuto
         }
 
         //Verify code types exist in the list
-        public bool Fn_Verify_CodeTypes_Dropdown_In_CodeMaint(int num)
+        public bool Fn_Verify_CodeTypes_Dropdown_In_CodeMaint(int codeTypeCnt)
         {
             Boolean flag = false;
             try
             {
-                if(Drpdwn_CodeTable.Exists(10))
+                if (Drpdwn_CodeTable.Exists(10))
                 {
                     Drpdwn_CodeTable.Highlight();
                     Drpdwn_CodeTable.Click();
 
                     Thread.Sleep(1000);
 
-                    if(List_CodeTable.Exists(10))
+                    if (List_CodeTable.Exists(10))
                     {
                         IReadOnlyList<IWebElement> listTags = List_CodeTable.FindElements(By.XPath(".//ul/li"));
-                        if(listTags.Count >= num)
+                        if (listTags.Count >= codeTypeCnt)
                         {
                             test.Pass("Code Table have Code types listed");
                             flag = true;
                         }
                         else
                         {
-                            test.Fail("Code table have less than "+num+" or no value in it");
+                            test.Fail("Code table have less than " + codeTypeCnt + " or no value in it");
                             GenericMethods.CaptureScreenshot();
                         }
                         Drpdwn_CodeTable.Click();

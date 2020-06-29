@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -117,7 +118,7 @@ namespace WL.TestAuto
             Boolean flag = false;
             try
             {
-                flag = GenericMethods.SelectValueFromDropDown(Drpdwn_UserGroup, List_UserGroup, Option);
+                flag = Drpdwn_UserGroup.SelectValueFromDropDown(Option);
                 if (flag)
                 {
                     test.Pass("User Type selected");
@@ -240,8 +241,8 @@ namespace WL.TestAuto
             catch (Exception ex)
             {
                 test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
-                EndTest();
-                //throw new Exception(ex.Message);
+                //EndTest();
+                throw new Exception(ex.Message);
             }
             return flag;
         }
@@ -249,14 +250,18 @@ namespace WL.TestAuto
         //Verify Payroll reports from DB Stored Proc
         //spParams format - param1:val1;param2:val2;etc
         //dataToVerify format - col1:val1;col2:val2;etc
-        public bool Fn_Verify_ReportsData_In_DataBase(string storedProc, string spParams, string dataToVerify)
+        public bool Fn_Verify_ReportsData_In_DataBase(string storedProc, string spParams, string dataToVerify, [Optional] string connection)
         {
             bool flag = false;
             DataSet ds;
 
             try
             {
-                string connection = GlobalDB.CreateConnectionString("dataSource".AppSettings(), "dbReportName".AppSettings(), "dbUser".AppSettings(), "dbPwd".AppSettings(), true);
+                if(connection=="" || connection == null)
+                {
+                    connection = GlobalDB.CreateConnectionString("dataSource".AppSettings(), "dbReportName".AppSettings(), "dbUser".AppSettings(), "dbPwd".AppSettings(), false);
+                }
+
                 ds = GlobalDB.ExecuteStoredProc(storedProc, spParams, connection);
 
                 if (dataToVerify.ToLower().Contains("data exists"))
@@ -303,8 +308,8 @@ namespace WL.TestAuto
             catch (Exception ex)
             {
                 test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
-                EndTest();
-                //throw new Exception(ex.Message);
+                //EndTest();
+                throw new Exception(ex.Message);
             }
             return flag;
         }
@@ -335,8 +340,8 @@ namespace WL.TestAuto
             catch (Exception ex)
             {
                 test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
-                EndTest();
-                //throw new Exception(ex.Message);
+                //EndTest();
+                throw new Exception(ex.Message);
             }
             return flag;
         }
@@ -367,8 +372,8 @@ namespace WL.TestAuto
             catch (Exception ex)
             {
                 test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
-                EndTest();
-                //throw new Exception(ex.Message);
+                //EndTest();
+                throw new Exception(ex.Message);
             }
             return listVals;
         }
@@ -391,8 +396,8 @@ namespace WL.TestAuto
             catch (Exception ex)
             {
                 test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
-                EndTest();
-                //throw new Exception(ex.Message);
+                //EndTest();
+                throw new Exception(ex.Message);
             }
             return colval;
         }
@@ -429,8 +434,8 @@ namespace WL.TestAuto
             catch (Exception ex)
             {
                 test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
-                EndTest();
-                //throw new Exception(ex.Message);
+                //EndTest();
+                throw new Exception(ex.Message);
             }
             return colval;
         }

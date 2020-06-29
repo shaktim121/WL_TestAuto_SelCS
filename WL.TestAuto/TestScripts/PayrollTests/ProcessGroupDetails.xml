@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ProcessGroupDetails>
+  <Data>
+    <!--Process Group Creation-->
+    <Country>Canada</Country>
+    <PayFrequency>Bi-Weekly</PayFrequency>
+    <ProcessGroupName>BIWEEK</ProcessGroupName>
+    <EnglishDesc>Biweekly Automation Payroll</EnglishDesc>
+    <FrenchDesc>Biweekly Automation Payroll</FrenchDesc>
+    <Period>24</Period>
+    <StartDate>1/7/2019</StartDate>
+    <CutOffDate>1/20/2019</CutOffDate>
+
+    <!--Process Group Search Details-->
+    <ProcessGroup>Biweekly Automation Payroll</ProcessGroup>
+    
+    <ProcessGroupNamesta1220>BWK</ProcessGroupNamesta1220>
+    <ProcessGroupsta1220>BiWeekly</ProcessGroupsta1220>
+    
+    <ProcessGroupNamesta1225>SEMI</ProcessGroupNamesta1225>
+    <ProcessGroupsta1225>Semi-Monthly</ProcessGroupsta1225>
+    
+    <ProcessGroupNamesta1235>BWK</ProcessGroupNamesta1235>
+    <ProcessGroupsta1235>BiWeekly</ProcessGroupsta1235>
+    
+    <ProcessGroupNamestkr1010>BI-WKLY</ProcessGroupNamestkr1010>
+    <ProcessGroupstkr1010>Bi-Weekly</ProcessGroupstkr1010>
+    <RunType>Regular</RunType>
+    <ChequeDate>CURR_DATE</ChequeDate>
+  </Data>
+</ProcessGroupDetails>

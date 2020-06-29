@@ -10,12 +10,14 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using AventStack.ExtentReports;
 using AventStack.ExtentReports.Reporter;
 using System.Data;
+using System.Runtime.Remoting.Messaging;
 
 namespace WL.TestAuto
 {
     [TestClass]
     public class AutomationCore
-    {   
+    {
+        public static readonly string downloadsFolder = @"C:\Users\" + Environment.UserName + "\\Downloads";
         // This will get the current WORKING directory (i.e. \bin\Debug)
         // or: Directory.GetCurrentDirectory() gives the same result
         public static readonly string workingDirectory = Environment.CurrentDirectory;
@@ -40,41 +42,6 @@ namespace WL.TestAuto
         public TestContext TestContext { get; set; }
 
         // Core Automation class
-        
-        [TestInitialize]
-        public void StartUpTest()// This method fire at the start of the Test
-        {   
-            string testName = TestContext.TestName;
-            test = extent.CreateTest(testName);
-            
-            try
-            {
-                //Get all test data from DB
-                data = testName.LoadTestData();
-                //Initiate App Launch
-                Browsers.Init();
-
-                //LogIn to Application
-                Pages.LogIn.Fn_LogInToApplication();
-            }
-            catch (Exception ex)
-            {
-                test.Error("Failed to Launch/Login to Application or Browser with Exception: " + ex.StackTrace + " and Message: "+ ex.Message);
-                GenericMethods.CaptureScreenshot();
-                throw new Exception(ex.Message);
-            }
-        }
-
-        [TestCleanup]
-        public void EndTest()// This method will fire at the end of the Test
-        {  
-            //LogOut of Application
-            Pages.LogIn.Fn_LogOutOfApplication();
-            Thread.Sleep(5000);
-            Browsers.Close();
-            extent.Flush();
-            Thread.Sleep(5000);
-        }
 
         [AssemblyInitialize]
         public static void StartClass(TestContext context)
@@ -97,10 +64,55 @@ namespace WL.TestAuto
             #endregion
         }
 
+        [TestInitialize]
+        public void StartUpTest()// This method fire at the start of the Test
+        {
+            string testName = TestContext.TestName;
+            test = extent.CreateTest(testName);
+
+            string baseURL = "url".AppSettings();
+            string browser = "browser".AppSettings();
+            string user = "user".AppSettings();
+            string pwd = "pwd".AppSettings();
+
+            try
+            {
+                //Get all test data from DB
+                data = testName.LoadTestData();
+
+                //Initiate App Launch
+                Browsers.Init(browser, baseURL);
+
+                //LogIn to Application
+                Pages.LogIn.Fn_LogInToApplication(user, pwd);
+            }
+            catch (Exception ex)
+            {
+                test.Error("Failed to Launch/Login to Application or Browser with Exception: " + ex.StackTrace + " and Message: " + ex.Message);
+                //GenericMethods.CaptureScreenshot();
+                throw new Exception("Exception: " + ex.StackTrace + " and Message: " + ex.Message);
+            }
+        }
+
+        [TestCleanup]
+        public void EndTest()// This method will fire at the end of the Test
+        {
+            //LogOut of Application
+            Pages.LogIn.Fn_LogOutOfApplication();
+            Thread.Sleep(3000);
+            Browsers.Close();
+            extent.Flush();
+            Thread.Sleep(3000);
+        }
+
         [AssemblyCleanup]
         public static void EndClass()
         {
-            
+            if(File.Exists(reportPath))
+            {
+                File.Copy(reportPath, @"\\cowldv03\F$\WLAutomation_Reports\" + fileNameExt);
+                Thread.Sleep(2000);
+            }
         }
     }
 }

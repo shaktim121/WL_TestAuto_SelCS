@@ -40,23 +40,23 @@ namespace WL.TestAuto
             Boolean flag = false;
             try
             {
-                if(!Options.Equals(""))
+                if (!Options.Equals(""))
                 {
                     string[] lstOption = Options.Split(';');
 
                     Menu_Help.Click();
                     Thread.Sleep(2000);
 
-                    if(Menu_SlideHelp.Exists(5))
+                    if (Menu_SlideHelp.Exists(5))
                     {
                         IReadOnlyList<IWebElement> lists = Menu_SlideHelp.FindElements(By.TagName("li"));
 
                         int cnt = 0;
                         foreach (string opt in lstOption)
                         {
-                            for(int i=0; i<lists.Count; i++)
+                            for (int i = 0; i < lists.Count; i++)
                             {
-                                if(opt.ToLower().Equals(lists[i].Text.ToLower()))
+                                if (opt.ToLower().Equals(lists[i].Text.ToLower()))
                                 {
                                     cnt++;
                                     lists[i].Highlight();
@@ -65,7 +65,7 @@ namespace WL.TestAuto
                                     break;
                                 }
 
-                                if(i==lists.Count-1)
+                                if (i == lists.Count - 1)
                                 {
                                     test.Fail("Help option : " + opt + " Not found");
                                     flag = false;

@@ -108,15 +108,25 @@ namespace WL.TestAuto
         private IWebElement Txt_CutoffDate { get; set; }
 
         [FindsBy(How = How.XPath, Using = "*//input[@type='button' and @value='Insert']")]
+        private IWebElement Btn_InsertToTable { get; set; }
+
+        [FindsBy(How = How.XPath, Using = "*//span[text()='Insert']")]
         private IWebElement Btn_Insert { get; set; }
 
-        [FindsBy(How = How.XPath, Using = "*//input[@type='submit' and @value='Cancel']")]
+        [FindsBy(How = How.XPath, Using = ".//span[text()='Cancel']")]
         private IWebElement Btn_Cancel { get; set; }
+
+        [FindsBy(How = How.XPath, Using = "*//input[@type='submit' and @value='Cancel']")]
+        private IWebElement Btn_CancelWindow { get; set; }
 
         [FindsBy(How = How.XPath, Using = "*//div[contains(@class,'RadComboBoxDropDown') and contains(@style,'display: block')]")]
         private IWebElement List_AllDrpDwn { get; set; }
 
-        
+        [FindsBy(How = How.XPath, Using = "*//iframe[contains(@name,'PaycodeMaintenanceWindows')]")]
+        private IWebElement Frame_PaycodeMaint { get; set; }
+
+        [FindsBy(How = How.XPath, Using = "*//a[@class='rwCloseButton' and @title='Close']")]
+        private IWebElement Btn_CloseX { get; set; }
 
 
         #endregion
@@ -199,18 +209,18 @@ namespace WL.TestAuto
                     }
                 }
 
-                if (Option.ToLower().Equals("organizational unit level") || Option.ToLower().Equals("organization unit level"))
+                if (Option.ToLower().Equals("organizational unit") || Option.ToLower().Equals("organization unit"))
                 {
                     GenericMethods.SelectValueFromSlideDropDown(Menu_Setup, "Setup", Menu_SlideSetup, Option);
                     if (Link_OrgUnitLevel.Exists(30))
                     {
                         Link_OrgUnitLevel.Highlight();
-                        test.Pass("Verified 'Setup -> Organizational Unit Level' on page");
+                        test.Pass("Verified 'Setup -> Organizational Unit' on page");
                         flag = true;
                     }
                     else
                     {
-                        test.Fail("Failed to verify 'Setup -> Organizational Unit Level' on page");
+                        test.Fail("Failed to verify 'Setup -> Organizational Unit' on page");
                         flag = false;
                     }
                 }
@@ -758,15 +768,21 @@ namespace WL.TestAuto
             bool flag = false;
             try
             {
+                if (Tbl_PayProcessGroup.FindElements(By.XPath("./tbody/tr//td[text()='" + processGrp + "']")).Count > 0)
+                {
+                    Tbl_PayProcessGroup.FindElements(By.XPath("./tbody/tr//td[text()='" + processGrp + "']"))[0].Highlight();
+                    return true;
+                }
+
                 Btn_AddToTable.Click();
-                DrpDwn_Country.SelectValueFromDropDown(List_AllDrpDwn, country);
+                DrpDwn_Country.SelectValueFromDropDown(country);
                 Thread.Sleep(2000);
-                DrpDwn_PayFrequency.SelectValueFromDropDown(List_AllDrpDwn, payFrequency);
+                DrpDwn_PayFrequency.SelectValueFromDropDown(payFrequency);
                 Thread.Sleep(2000);
                 Txt_ProcessGroup.SetText(processGrp);
                 Txt_EnglishDesc.SetText(engDesc);
                 Txt_FrenchDesc.SetText(frenchDesc);
-                if(Lbl_Year.Text == DateTime.Now.Year.ToString())
+                if (Lbl_Year.Text == DateTime.Now.Year.ToString())
                 {
                     flag = true;
                 }
@@ -774,21 +790,26 @@ namespace WL.TestAuto
                 Txt_StartDate.SetText(startDate);
                 Txt_CutoffDate.Click();
                 Thread.Sleep(5000);
-                if(Txt_CutoffDate.GetAttribute("value") == cutoffDate) flag = true;
+                if (Txt_CutoffDate.GetAttribute("value") == cutoffDate) flag = true;
                 else flag = false;
 
-                Btn_Insert.Click();
+                Btn_InsertToTable.Click();
                 Thread.Sleep(5000);
-                if (Tbl_PayProcessGroup.FindElements(By.XPath("./tbody/tr//td[text()='" + processGrp + "']")).Count > 0) flag = true;
+                if (Tbl_PayProcessGroup.FindElements(By.XPath("./tbody/tr//td[text()='" + processGrp + "']")).Count > 0)
+                {
+                    Tbl_PayProcessGroup.FindElements(By.XPath("./tbody/tr//td[text()='" + processGrp + "']"))[0].Highlight();
+                    flag = true;
+                }
                 else flag = false;
 
-                if(flag)
+                if (flag)
                 {
-                    test.Pass("Payroll Process Group: "+processGrp+" created Successfully");
+                    test.Pass("Payroll Process Group: " + processGrp + " created Successfully");
                 }
                 else
                 {
-                    test.Fail("Failed to create Payroll Process Group: "+processGrp);
+                    test.Fail("Failed to create Payroll Process Group: " + processGrp);
+                    GenericMethods.CaptureScreenshot();
                 }
             }
             catch (Exception ex)
@@ -797,6 +818,59 @@ namespace WL.TestAuto
                 EndTest();
                 //throw new Exception(ex.Message);
             }
+            return flag;
+        }
+
+        //Navigate to Add paycode screen and verify
+        public bool Fn_Navigate_Verify_Add_Paycode_Screen(string paycodeType)
+        {
+            bool flag = false;
+            try
+            {
+                if(Btn_AddToTable.Exists(10))
+                {
+                    Btn_AddToTable.Click();
+                    if(driver.FindElement(By.XPath(".//span[text()='"+paycodeType+"']")).Exists())
+                    {
+                        driver.FindElement(By.XPath(".//span[text()='" + paycodeType + "']")).Click();
+                    }
+                    else
+                    {
+                        test.Fail(paycodeType + "Paycode not found");
+                        return false;
+                    }
+
+                    if(driver.FindElement(By.XPath(".//em[contains(text(),'"+paycodeType+" Paycode')]")).Exists())
+                    {
+                        Thread.Sleep(2000);
+                        driver.SwitchTo().Frame(Frame_PaycodeMaint);
+                        if(Btn_Insert.Exists() && Btn_Cancel.Exists())
+                        {
+                            flag = true;
+                        }
+                        driver.SwitchTo().ParentFrame();
+                        Btn_CloseX.Click();
+                    }
+                    else
+                    {
+                        test.Fail("Add paycode window failed to open");
+                        return false;
+                    }
+
+
+                }
+                else
+                {
+                    test.Fail(paycodeType + "Paycode not found");
+                }
+            }
+            catch (Exception ex)
+            {
+                test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
+                EndTest();
+                //throw new Exception(ex.Message);
+            }
+
             return flag;
         }
 

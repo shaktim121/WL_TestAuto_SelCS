@@ -1,13 +1,16 @@
 ﻿using AutoIt;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Interactions;
 using OpenQA.Selenium.Support.PageObjects;
 using OpenQA.Selenium.Support.UI;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -41,7 +44,7 @@ namespace WL.TestAuto
 
         [FindsBy(How = How.XPath, Using = "*//a[text()='Import']")]
         private IWebElement Link_Import { get; set; }
-        
+
         [FindsBy(How = How.XPath, Using = "//*[@id='ctl00_MainMenu']//span[text()='Payroll']//following::a/span[text()='Reports']")]
         private IWebElement SubMenu_Reports { get; set; }
 
@@ -62,9 +65,12 @@ namespace WL.TestAuto
 
         [FindsBy(How = How.XPath, Using = "*//span[contains(@class,'rmExpandDown') and text()='Reports']")]
         private IWebElement Tab_Reports { get; set; }
-        
+
         [FindsBy(How = How.XPath, Using = "*//span[text()='Mass Payslip File']")]
         private IWebElement Tab_MassPayslipFile { get; set; }
+
+        [FindsBy(How = How.XPath, Using = ".//span[@class='rtbText' and text()='Export']")]
+        private IWebElement Tab_Export { get; set; }
 
         [FindsBy(How = How.XPath, Using = "*//span[contains(@class,'rmExpandRight') and text()='Standard']")]
         private IWebElement SubMenu_Standard { get; set; }
@@ -83,10 +89,10 @@ namespace WL.TestAuto
 
         [FindsBy(How = How.XPath, Using = "*//span[text()='Annual Salary']/parent::*/parent::*//input[@type='text']")]
         private IWebElement Txt_EmpAnnualSal { get; set; }
-        
+
         [FindsBy(How = How.XPath, Using = "*//table[@id='ctl00_ContentPlaceHolder1_EmployeePositionControl1_EmployeePositionGrid_ctl00']")]
         private IWebElement Tbl_EmployeePosition { get; set; }
-        
+
         [FindsBy(How = How.XPath, Using = "*//span[text()='Position']")]
         private IWebElement Btn_EmpPosition { get; set; }
 
@@ -95,7 +101,7 @@ namespace WL.TestAuto
 
         [FindsBy(How = How.XPath, Using = "*//iframe[contains(@name,'PositionWindows')]")]
         private IWebElement Frame_EmployeePosition { get; set; }
-        
+
         [FindsBy(How = How.XPath, Using = "*//a[@class='rwCloseButton' and @title='Close']")]
         private IWebElement Btn_CloseX { get; set; }
 
@@ -109,10 +115,10 @@ namespace WL.TestAuto
         private IWebElement Btn_Post { get; set; }
 
         [FindsBy(How = How.XPath, Using = "*//div[contains(@class,'RadComboBoxDropDown') and contains(@style,'display: block')]")]
-        private IWebElement List_AllDrpDwn { get; set; }
+        public IWebElement List_AllDrpDwn { get; set; }
 
         [FindsBy(How = How.XPath, Using = "*//span[text()='Process Group']/parent::*/parent::*//input[@type='text']")]
-        private IWebElement DrpDwn_ProcessGrp { get; set; }
+        public IWebElement DrpDwn_ProcessGrp { get; set; }
 
         [FindsBy(How = How.XPath, Using = "*//span[text()='Run Type']/parent::*/parent::*//input[@type='text']")]
         private IWebElement DrpDwn_RunType { get; set; }
@@ -134,12 +140,51 @@ namespace WL.TestAuto
 
         [FindsBy(How = How.XPath, Using = "*//iframe[contains(@name,'RegisterReportWindow') or contains(@name,'PayrollProcessWindow')]")]
         private IWebElement Frame_PDFReport { get; set; }
-        
+
         [FindsBy(How = How.XPath, Using = "*//div[@class='rmScrollWrap rmGroup rmLevel1']//a[@class='rmBottomArrow']")]
         private IWebElement Btn_ScrollDownArrow { get; set; }
-        
+
         [FindsBy(How = How.XPath, Using = "*//div[@class='rmScrollWrap rmGroup rmLevel1']//a[@class='rmTopArrow']")]
         private IWebElement Btn_ScrollUpArrow { get; set; }
+
+        [FindsBy(How = How.XPath, Using = "//li[@class='rtbItem rtbBtn']//span[text()='Pay Slips']")]
+        private IWebElement Btn_PaySlips { get; set; }
+
+        [FindsBy(How = How.XPath, Using = "//em[contains(text(),'Pay Slips')]")]
+        private IWebElement Lbl_PaySlips { get; set; }
+
+        [FindsBy(How = How.XPath, Using = "*//iframe[contains(@name,'EmployeeWindows')]")]
+        private IWebElement Frame_EmployeeWizard { get; set; }
+
+        [FindsBy(How = How.XPath, Using = "//div[contains(@id,'EmployeePaySlipControl_PayrollProcessSummaryGrid_GridData')]//table[@class='rgMasterTable rgClipCells rgClipCells']")]
+        private IWebElement Table_EmployeePayrollPeriod { get; set; }
+
+        [FindsBy(How = How.XPath, Using = "*//iframe[contains(@id,'_RadPane') and contains(@src, 'PDF')]")]
+        private IWebElement PDFReportArea { get; set; }
+
+        [FindsBy(How = How.XPath, Using = ".//span[text()='Start Date']//following::span[contains(@id,'StartDate_Field')]")]
+        private IWebElement Lbl_PeriodStartDate { get; set; }
+
+        [FindsBy(How = How.XPath, Using = ".//span[text()='Period End Date']//following::span[contains(@id,'CutoffDate_Field')]")]
+        private IWebElement Lbl_PeriodEndDate { get; set; }
+
+        [FindsBy(How = How.XPath, Using = ".//table[@id='ctl00_MainContent_RoeCreationSearchControl1_EmployeeSummaryGrid_ctl00']")]
+        private IWebElement Tbl_ROECreationSearch { get; set; }
+
+        [FindsBy(How = How.XPath, Using = ".//span[@class='rtbText' and text()='Export ROE']")]
+        private IWebElement Tab_ExportROE { get; set; }
+        
+        [FindsBy(How = How.XPath, Using = ".//input[@id='ctl00_MainContent_NonStatDeductionsControl1_Date_Field_dateInput']")]
+        private IWebElement Txt_DateNotStatDed { get; set; }
+
+        [FindsBy(How = How.XPath, Using = "*//span[text()='Vendor']/parent::*/parent::*//input[@type='text']")]
+        private IWebElement DrpDwn_Vendor { get; set; }
+
+        [FindsBy(How = How.XPath, Using = "*//input[@value='Excel']")]
+        private IWebElement Btn_ExportExcel { get; set; }
+
+        [FindsBy(How = How.XPath, Using = "*//input[@value='PDF']")]
+        private IWebElement Btn_ExportPDF { get; set; }
 
 
         #endregion
@@ -159,122 +204,6 @@ namespace WL.TestAuto
             Boolean flag = false;
             try
             {
-                if (Option.ToLower().Equals("employee"))
-                {
-
-                    //Code to verify Employee screen displayed
-                    GenericMethods.SelectValueFromSlideDropDown(Menu_Payroll, "Payroll", Menu_SlidePayroll, Option);
-                    if (Link_Employee.Exists(30))
-                    {
-                        Link_Employee.Highlight();
-                        test.Pass("Verified 'Payroll -> Employee' on page");
-                        flag = true;
-                    }
-                    else
-                    {
-                        test.Fail("Failed to verify 'Payroll -> Employee' on page");
-                        GenericMethods.CaptureScreenshot();
-                        flag = false;
-                    }
-                }
-
-                if (Option.ToLower().Equals("batch"))
-                {
-                    //code for batch
-                    GenericMethods.SelectValueFromSlideDropDown(Menu_Payroll, "Payroll", Menu_SlidePayroll, Option);
-                    if (Link_Batch.Exists(30))
-                    {
-                        Link_Batch.Highlight();
-                        test.Pass("Verified 'Payroll -> Batch' on page");
-                        flag = true;
-                    }
-                    else
-                    {
-                        test.Fail("Failed to verify 'Payroll -> Batch' on page");
-                        GenericMethods.CaptureScreenshot();
-                        flag = false;
-                    }
-                }
-
-                if (Option.ToLower().Equals("payroll transaction"))
-                {
-                    //code for payroll process
-                    GenericMethods.SelectValueFromSlideDropDown(Menu_Payroll, "Payroll", Menu_SlidePayroll, Option);
-                    if (Link_PayTransact.Exists(30))
-                    {
-                        Link_PayTransact.Highlight();
-                        test.Pass("Verified 'Payroll -> Payroll Transaction' on page");
-                        test.Pass("Navigated to Payroll Transaction Screen under Payroll");
-                        flag = true;
-                    }
-                    else
-                    {
-                        test.Fail("Failed to verify 'Payroll -> Payroll Transaction' on page");
-                        test.Fail("Failed to navigate to Payroll Transaction Screen under Payroll");
-                        GenericMethods.CaptureScreenshot();
-                        flag = false;
-                    }
-                   
-                }
-
-                if (Option.ToLower().Equals("payroll process"))
-                {
-                    //code for payroll process
-                    GenericMethods.SelectValueFromSlideDropDown(Menu_Payroll, "Payroll", Menu_SlidePayroll, Option);
-                    if (Link_PayProcess.Exists(30))
-                    {
-                        Link_PayProcess.Highlight();
-                        test.Pass("Verified 'Payroll -> Payroll Process' on page");
-                        test.Pass("Navigated to Payroll Process Screen under Payroll");
-                        flag = true;
-                    }
-                    else
-                    {
-                        test.Fail("Failed to verify 'Payroll -> Payroll Process' on page");
-                        test.Fail("Failed to navigate to Payroll Process Screen under Payroll");
-                        GenericMethods.CaptureScreenshot();
-                        flag = false;
-                    }
-                }
-
-                if (Option.ToLower().Equals("payments"))
-                {
-                    //code for payroll process
-                    GenericMethods.SelectValueFromSlideDropDown(Menu_Payroll, "Payroll", Menu_SlidePayroll, Option);
-                    if (Link_Payments.Exists(30))
-                    {
-                        Link_Payments.Highlight();
-                        test.Pass("Verified 'Payroll -> Payments' on page");
-                        test.Pass("Navigated to Payments Screen under Payroll");
-                        flag = true;
-                    }
-                    else
-                    {
-                        test.Fail("Failed to verify 'Payroll -> Payments' on page");
-                        test.Fail("Failed to navigate to Payments Screen under Payroll");
-                        GenericMethods.CaptureScreenshot();
-                        flag = false;
-                    }
-                }
-
-                if (Option.ToLower().Equals("import"))
-                {
-                    //code for payroll process
-                    GenericMethods.SelectValueFromSlideDropDown(Menu_Payroll, "Payroll", Menu_SlidePayroll, Option);
-                    if (Link_Import.Exists(30))
-                    {
-                        Link_Import.Highlight();
-                        test.Pass("Verified 'Payroll -> Import' on page");
-                        flag = true;
-                    }
-                    else
-                    {
-                        test.Fail("Failed to verify 'Payroll -> Import' on page");
-                        GenericMethods.CaptureScreenshot();
-                        flag = false;
-                    }
-                }
-
                 if (Option.Split('-')[0].ToLower().Equals("reports"))
                 {
                     //Code for Reports - FORMAT: 'Reports-Report Name'
@@ -293,6 +222,25 @@ namespace WL.TestAuto
                         flag = false;
                     }
                 }
+
+                if (Option != "")
+                {
+                    GenericMethods.SelectValueFromSlideDropDown(Menu_Payroll, "Payroll", Menu_SlidePayroll, Option);
+                    if (driver.FindElement(By.XPath(".//a[text()='" + Option + "']")).Exists(30))
+                    {
+                        driver.FindElement(By.XPath(".//a[text()='" + Option + "']")).Highlight();
+                        test.Pass("Verified 'Payroll -> " + Option + "' on page");
+                        test.Pass("Navigated to " + Option + " Screen under Payroll");
+                        flag = true;
+                    }
+                    else
+                    {
+                        test.Fail("Failed to verify 'Payroll -> " + Option + "' on page");
+                        GenericMethods.CaptureScreenshot();
+                        flag = false;
+                    }
+                }
+
             }
             catch (Exception ex)
             {
@@ -324,11 +272,11 @@ namespace WL.TestAuto
                             flag = true;
                         }
                         else
-                        {   
+                        {
                             test.Fail("Failed to find Text Field: " + t);
                             flag = false;
                         }
-                        
+
                     }
                 }
 
@@ -339,7 +287,7 @@ namespace WL.TestAuto
                     foreach (string b in btn)
                     {
                         IReadOnlyCollection<IWebElement> ele = driver.FindElements(By.XPath("*//input[(@type='button' or @type='submit') and @value=\"" + b + "\"]"));
-                        
+
                         if (ele.Count > 0)
                         {
                             ele.First().Highlight();
@@ -350,7 +298,7 @@ namespace WL.TestAuto
                         {
                             ele = driver.FindElements(By.XPath("*//button[(@type='button' or @type='submit') and text()=\"" + b + "\"]"));
 
-                            if(ele.Count > 0)
+                            if (ele.Count > 0)
                             {
                                 ele.First().Highlight();
                                 test.Pass("Button: " + b + " found");
@@ -362,7 +310,7 @@ namespace WL.TestAuto
                                 flag = false;
                             }
                         }
-                        
+
                     }
                 }
 
@@ -448,7 +396,7 @@ namespace WL.TestAuto
                     foreach (string col in cols)
                     {
                         IReadOnlyCollection<IWebElement> ele = driver.FindElements(By.XPath("*//th/a[text()=\"" + col + "\"]"));
-                        
+
                         if (ele.Count > 0)
                         {
                             ele.FirstOrDefault().Highlight();
@@ -517,13 +465,14 @@ namespace WL.TestAuto
         {
             Boolean flag = false;
             try
-            {   
+            {
                 if (DrpDwn_ImportType.Exists(5))
                 {
                     DrpDwn_ImportType.Click();
+                    Thread.Sleep(TimeSpan.FromSeconds(5));
                     var typeList = List_ImportType.FindElements(By.TagName("li"));
                     int failCnt = 0;
-                    if (typeNames!="" && typeList.Count > 0)
+                    if (typeNames != "" && typeList.Count > 0)
                     {
                         string[] types = typeNames.Split(';');
                         foreach (string type in types)
@@ -531,11 +480,11 @@ namespace WL.TestAuto
                             int cnt = 0;
                             for (int t = 0; t < typeList.Count; t++)
                             {
-                                if(type.ToLower().Equals(typeList[t].Text.ToLower()))
+                                if (type.ToLower().Equals(typeList[t].Text.ToLower()))
                                 {
                                     cnt++;
                                     typeList[t].Highlight();
-                                    test.Pass(type + " found");
+                                    test.Pass(type + " : Found");
                                     flag = true;
                                     break;
                                 }
@@ -576,93 +525,104 @@ namespace WL.TestAuto
 
         }
 
-        public bool Fn_Verify_And_Navigate_To_Reports_In_Payroll(string reportName)
+        public bool Fn_Navigate_To_Reports_In_Payroll(string reportName)
         {
             Boolean flag = false;
+            WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(30));
             try
-            {   
-                if (reportName=="")
+            {
+                if (reportName == "")
                 {
                     test.Error("No report name specified");
                     GenericMethods.CaptureScreenshot();
                     return false;
                 }
 
-                //report names Report1>subreport1>subsubreport...
-                string[] reportNav = reportName.Split('>');
-
-                if (Menu_Payroll.Exists(5))
+                string[] reportList = reportName.Split(';');
+                foreach (string reportL in reportList)
                 {
-                    Menu_Payroll.Click();
-                    Thread.Sleep(3000);
-                    if (SubMenu_Reports.Exists(5))
+
+                    //report names Report1>subreport1>subsubreport...
+                    string[] reportNav = reportL.Split('>');
+
+                    if (Menu_Payroll.Exists(5))
                     {
-                        SubMenu_Reports.Click();
+                        Menu_Payroll.Click();
                         Thread.Sleep(3000);
-                        if(reportNav[reportNav.Length-1].ToString() == "Excel")
+                        if (SubMenu_Reports.Exists(5))
                         {
-                            //Code to export report from menu in Excel
-                            foreach (string report in reportNav)
+                            SubMenu_Reports.Click();
+                            Thread.Sleep(3000);
+                            if (reportNav[reportNav.Length - 1].ToString() == "Excel")
                             {
-                                if(report.Equals("Excel"))
+                                //Code to export report from menu in Excel
+                                foreach (string report in reportNav)
+                                {
+                                    if (report.Equals("Excel"))
+                                    {
+                                        if (driver.FindElements(By.XPath("*//a/span[text()='" + report + "']")).Count > 0)
+                                        {
+                                            var element = wait.Until(ExpectedConditions.ElementIsVisible(By.XPath("*//a/span[text()='" + report + "']")));
+
+                                            Actions action = new Actions(driver);
+                                            action.MoveToElement(element).Perform();
+                                            driver.FindElement(By.XPath("*//a/span[text()='" + report + "']")).Click();
+                                            
+                                            Thread.Sleep(2000);
+                                            test.Pass("Exported " + reportNav[reportNav.Length - 1] + " report: " + reportNav[reportNav.Length - 2] + "from " + reportName);
+                                            flag = true;
+                                        }
+                                        else
+                                        {
+                                            test.Fail("Failed to find or export report: " + reportNav[reportNav.Length - 2] + "from " + reportName);
+                                            GenericMethods.CaptureScreenshot();
+                                            flag = false;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        var element = wait.Until(ExpectedConditions.ElementIsVisible(By.XPath("*//span[text()='" + report + "']")));
+
+                                        Actions action = new Actions(driver);
+                                        action.MoveToElement(element).Perform();
+                                        Thread.Sleep(2000);
+                                    }
+
+                                }
+                            }
+                            else
+                            {
+                                //Code to navigate to report page 
+                                foreach (string report in reportNav)
                                 {
                                     if (driver.FindElements(By.XPath("*//a/span[text()='" + report + "']")).Count > 0)
                                     {
                                         driver.FindElements(By.XPath("*//a/span[text()='" + report + "']"))[0].Click();
-                                        Thread.Sleep(5000);
-                                        test.Pass("Exported "+ reportNav[reportNav.Length - 1] + " report: " + reportNav[reportNav.Length - 2] + "from " + reportName);
-                                        flag = true;
+                                        Thread.Sleep(3000);
+                                        if (report.Equals(reportNav[reportNav.Length - 1].ToString()))
+                                        {
+                                            Thread.Sleep(2000);
+                                            if (driver.FindElements(By.XPath("*//a[text()='" + report + "']")).Count > 0)
+                                            {
+                                                driver.FindElements(By.XPath("*//a[text()='" + report + "']"))[0].Highlight();
+                                                test.Pass("Successfully Navigated to report: " + report);
+                                                flag = true;
+                                            }
+                                        }
+
+
                                     }
                                     else
                                     {
-                                        test.Fail("Failed to find or export report: " + reportNav[reportNav.Length - 2] + "from " + reportName);
+                                        test.Fail("Failed to navigate to report: " + report + "from " + reportName);
                                         GenericMethods.CaptureScreenshot();
                                         flag = false;
                                     }
                                 }
-                                else
-                                {
-                                    WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
-                                    var element = wait.Until(ExpectedConditions.ElementIsVisible(By.XPath("*//span[text()='" + report + "']")));
-
-                                    Actions action = new Actions(driver);
-                                    action.MoveToElement(element).Perform();
-                                    Thread.Sleep(2000);
-                                }
-                                
-                            }
-                        }
-                        else
-                        {
-                            //Code to navigate to report page 
-                            foreach (string report in reportNav)
-                            {
-                                if (driver.FindElements(By.XPath("*//a/span[text()='" + report + "']")).Count > 0)
-                                {
-                                    driver.FindElements(By.XPath("*//a/span[text()='" + report + "']"))[0].Click();
-                                    Thread.Sleep(3000);
-                                    if(report.Equals(reportNav[reportNav.Length-1].ToString()))
-                                    {
-                                        Thread.Sleep(2000);
-                                        if (driver.FindElements(By.XPath("*//a[text()='" + report + "']")).Count > 0)
-                                        {
-                                            driver.FindElements(By.XPath("*//a[text()='" + report + "']"))[0].Highlight();
-                                            test.Pass("Successfully Navigated to report: " + report);
-                                            flag = true;
-                                        }
-                                    }
-                                    
-                                    
-                                }
-                                else
-                                {
-                                    test.Fail("Failed to navigate to report: "+ report + "from " + reportName);
-                                    GenericMethods.CaptureScreenshot();
-                                    flag = false;
-                                }
                             }
                         }
                     }
+
                 }
             }
             catch (Exception ex)
@@ -672,8 +632,75 @@ namespace WL.TestAuto
                 EndTest();
                 //throw new Exception(ex.Message);
             }
-            
+
             return flag;
+        }
+
+        public bool Fn_View_Verify_Payroll_Report_NonStatDed(string date, string vendor)
+        {
+            bool flag = false;
+            try
+            {
+                if(date!="")
+                {
+                    Txt_DateNotStatDed.SetText(date);
+                }
+
+                if(DrpDwn_Vendor.SelectValueFromDropDown(vendor))
+                {
+                    GenericMethods.DeleteFilesFromDirectory(downloadsFolder, "NonStatDeductions");
+
+                    flag = Pages.HR.Fn_Click_View_Report_And_Verify_PDF_Loaded("Non-Stat Deductions");
+                    if (flag) ClickExportReport("Excel");
+
+                    if (GenericMethods.WaitForFileExists(downloadsFolder, "NonStatDeductions"))
+                    {
+                        test.Pass("Report Non-Stat Deductions download successful");
+                        flag = true;
+                    }
+                    else
+                    {
+                        test.Fail("Report Non-Stat Deductions download failed");
+                        flag = false;
+                    }
+                }
+                else
+                {
+                    test.Fail("Failed to load or verify Payroll report: Non-Stat Deductions");
+                    GenericMethods.CaptureScreenshot();
+                }
+
+            }
+            catch(Exception ex)
+            {
+                test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
+                GenericMethods.CaptureScreenshot();
+                throw new Exception(ex.Message);
+            }
+            return flag;
+        }
+
+        public void ClickExportReport(string reportFormat)
+        {
+            try
+            {
+                if(reportFormat.ToUpper().Equals("PDF"))
+                {
+                    Btn_ExportPDF.Click();
+                }
+                else
+                {
+                    Btn_ExportExcel.Click();
+                }
+                
+            }
+            catch (Exception ex)
+            {
+                test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
+                GenericMethods.CaptureScreenshot();
+                throw new Exception(ex.Message);
+            }
+            
         }
 
         public bool Fn_Verify_Record_Displayed_In_PayrollTransactionTable()
@@ -723,18 +750,19 @@ namespace WL.TestAuto
             Boolean flag = false;
             try
             {
-                if(Btn_EmpPosition.Exists(10))
+                if (Btn_EmpPosition.Exists(10))
                 {
                     Btn_EmpPosition.Click();
-                    if(Lbl_EmployeePosition.Exists(15))
+                    if (Lbl_EmployeePosition.Exists(15))
                     {
                         flag = true;
                         driver.SwitchTo().Frame(Frame_EmployeePosition);
 
-                        if(Tbl_EmployeePosition.Exists(10) && Tbl_EmployeePosition.FindElements(By.XPath("./tbody/tr/td[text()='" + empState + "']")).Count > 0)
+                        if (Tbl_EmployeePosition.Exists() && Tbl_EmployeePosition.FindElements(By.XPath("./tbody/tr/td[text()='" + empState + "']")).Count > 0)
                         {
+                            Tbl_EmployeePosition.FindElement(By.XPath("./tbody/tr/td[text()='" + empState + "']")).Highlight();
                             Tbl_EmployeePosition.FindElement(By.XPath("./tbody/tr/td[text()='" + empState + "']")).Click();
-                            Thread.Sleep(15000);
+                            Thread.Sleep(5000);
                         }
 
                         string[] empDetails = arrayEmpDetails.Split(';');
@@ -743,13 +771,13 @@ namespace WL.TestAuto
                             string field = empDetail.Split('-')[0];
                             string value = empDetail.Split('-')[1];
 
-                            if (driver.FindElements(By.XPath("*//span[text()='"+field+"']/parent::*/following::*/span[text()='"+value+"']")).Count > 0)
+                            if (driver.FindElements(By.XPath("*//span[text()='" + field + "']/parent::*/following::*/span[text()='" + value + "']")).Count > 0)
                             {
                                 driver.FindElements(By.XPath("*//span[text()='" + field + "']/parent::*/following::*/span[text()='" + value + "']"))[0].Highlight();
-                                test.Pass("Field: "+ field + " found with value: "+value);
+                                test.Pass("Field: " + field + " found with value: " + value);
                                 flag = true;
                             }
-                            else if(driver.FindElements(By.XPath("*//span[text()='"+field+"']/parent::*/following::*/span/input[@value='"+value+"']")).Count > 0)
+                            else if (driver.FindElements(By.XPath("*//span[text()='" + field + "']/parent::*/following::*/span/input[@value='" + value + "']")).Count > 0)
                             {
                                 driver.FindElements(By.XPath("*//span[text()='" + field + "']/parent::*/following::*/span/input[@value='" + value + "']"))[0].Highlight();
                                 test.Pass("Field: " + field + " found with value: " + value);
@@ -797,26 +825,23 @@ namespace WL.TestAuto
             WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(60));
             try
             {
-                if(!Lbl_PayrollStatus.Exists(5))
-                {
-                    DrpDwn_ProcessGrp.SelectValueFromDropDown(List_AllDrpDwn, processGroup);
-                }
 
-                Fn_Undo_Payroll_Calculation();
+                Fn_Undo_Payroll_Calculation(processGroup);
 
-                if(Fn_GetPayrollRunStatus() == "New")
+                //if (DrpDwn_ProcessGrp.Exists(10))
+                //{
+                //    DrpDwn_ProcessGrp.SelectValueFromDropDown(processGroup);
+                //    Thread.Sleep(3000);
+                //}
+
+                if (Fn_GetPayrollRunStatus() == "New")
                 {
-                    if(processGroup!="")
+                    if (runType != "")
                     {
-                        DrpDwn_ProcessGrp.SelectValueFromDropDown(List_AllDrpDwn, processGroup);
+                        DrpDwn_RunType.SelectValueFromDropDown(runType);
                     }
                     Thread.Sleep(3000);
-                    if(runType!="")
-                    {
-                        DrpDwn_RunType.SelectValueFromDropDown(List_AllDrpDwn, runType);
-                    }
-                    Thread.Sleep(3000);
-                    if(chequeDate!="")
+                    if (chequeDate != "")
                     {
                         //Txt_ChequeDate.SetText(chequeDate);
                         Calendar_ChequeDate.SelectDateFromCalendarPopup(chequeDate);
@@ -824,9 +849,20 @@ namespace WL.TestAuto
                     Thread.Sleep(2000);
 
                     Btn_Calculate.Click();
-                    wait.Until(drv => (Lbl_PayrollStatus.Text.ToLower() == "calculation processed")||(Lbl_PayrollStatus.Text.ToLower() == "calculation in arrears"));
-                    flag = true;
-                    test.Pass("Payroll calculated successfully");
+                    Thread.Sleep(3000);
+
+                    if (wait.Until(drv => (Lbl_PayrollStatus.Text.ToLower() == "calculation processed") || (Lbl_PayrollStatus.Text.ToLower() == "calculation in arrears")))
+                    {
+                        flag = true;
+                        test.Pass("Payroll calculated successfully");
+                    }
+                    else
+                    {
+                        test.Fail("Failed to calculate Payroll");
+                        GenericMethods.CaptureScreenshot();
+                        flag = false;
+                    }
+                    
                 }
                 else
                 {
@@ -849,10 +885,10 @@ namespace WL.TestAuto
         //Get Payroll run status from Payroll Process page
         public string Fn_GetPayrollRunStatus()
         {
-            string status = null ;
+            string status = null;
             try
             {
-                if(Lbl_PayrollStatus.Exists(5))
+                if (Lbl_PayrollStatus.Exists(5))
                 {
                     status = Lbl_PayrollStatus.Text;
                 }
@@ -878,35 +914,35 @@ namespace WL.TestAuto
             bool flag = false;
             try
             {
-                if(processGroup!="")
+                if (processGroup != "")
                 {
                     if (DrpDwn_ProcessGrp.GetAttribute("value").ToLower().Equals(processGroup.ToLower()))
                     {
                         flag = true;
                     }
                     else
-                    {   
+                    {
                         test.Fail("Required Process Group is not selected");
                         GenericMethods.CaptureScreenshot();
                         return false;
                     }
                 }
 
-                if(runType!="")
+                if (runType != "")
                 {
                     if (DrpDwn_RunType.GetAttribute("value").ToLower().Equals(runType.ToLower()))
                     {
                         flag = true;
                     }
                     else
-                    {   
+                    {
                         test.Fail("Required Run Type is not selected");
                         GenericMethods.CaptureScreenshot();
                         return false;
                     }
                 }
-                
-                if(Fn_GetPayrollRunStatus().ToLower().Equals(runStatus.ToLower()))
+
+                if (Fn_GetPayrollRunStatus().ToLower().Equals(runStatus.ToLower()))
                 {
                     flag = true;
                     test.Pass("Payroll Run status verified successfully");
@@ -929,13 +965,21 @@ namespace WL.TestAuto
         }
 
         //Undo Payroll calculation
-        public bool Fn_Undo_Payroll_Calculation()
+        public bool Fn_Undo_Payroll_Calculation(string processGroup)
         {
             bool flag = false;
             WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(60));
             try
             {
-                if(!Fn_GetPayrollRunStatus().Equals("New"))
+                if (!Lbl_PayrollStatus.Exists(5))
+                {
+                    if (DrpDwn_ProcessGrp.Exists(10))
+                    {
+                        DrpDwn_ProcessGrp.SelectValueFromDropDown(processGroup);
+                    }
+                }
+
+                if (!Fn_GetPayrollRunStatus().Equals("New"))
                 {
                     Btn_UndoCalc.Click();
                     wait.Until(drv => Lbl_PayrollStatus.Text == "New");
@@ -950,6 +994,45 @@ namespace WL.TestAuto
                         GenericMethods.CaptureScreenshot();
                     }
                 }
+                else
+                {
+                    flag = true;
+                    test.Pass("No calculated payroll found");
+                }
+            }
+            catch (Exception ex)
+            {
+                test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
+                GenericMethods.CaptureScreenshot();
+                throw new Exception(ex.Message);
+            }
+            return flag;
+        }
+
+        //Get payroll period from screen
+        public Dictionary<string, string> Fn_Get_Payroll_Period_From_PayrollProcess(string processGroup, string runType)
+        {
+            Dictionary<string, string> payPeriod = new Dictionary<string, string>();
+            try
+            {
+                if (DrpDwn_ProcessGrp.Exists(10))
+                {
+                    DrpDwn_ProcessGrp.SelectValueFromDropDown(processGroup);
+                }
+
+                if (runType != "" && DrpDwn_RunType.Exists(10))
+                {
+                    Thread.Sleep(3000);
+                    DrpDwn_RunType.SelectValueFromDropDown(runType);
+                }
+
+                if (Lbl_PeriodStartDate.Exists(10) && Lbl_PeriodEndDate.Exists(10))
+                {
+                    payPeriod.Add("StartDate", Lbl_PeriodStartDate.Text);
+                    payPeriod.Add("EndDate", Lbl_PeriodEndDate.Text);
+                }
+
+
             }
             catch (Exception ex)
             {
@@ -958,7 +1041,7 @@ namespace WL.TestAuto
                 EndTest();
                 //throw new Exception(ex.Message);
             }
-            return flag;
+            return payPeriod;
         }
 
         //Post payroll
@@ -967,7 +1050,7 @@ namespace WL.TestAuto
             bool flag = false;
             try
             {
-                if(Btn_Post.Exists(5))
+                if (Btn_Post.Exists(5))
                 {
                     Btn_Post.Click();
                     Thread.Sleep(2000);
@@ -984,7 +1067,7 @@ namespace WL.TestAuto
                         GenericMethods.CaptureScreenshot();
                     }
                 }
-                
+
             }
             catch (Exception ex)
             {
@@ -997,40 +1080,57 @@ namespace WL.TestAuto
         }
 
         //verify Reports in Payroll process page
-        public bool Fn_Verify_Reports_In_Payroll_ProcessTable(string reportType, string reportName, string reportFormat)
+        public bool Fn_Verify_Reports_In_Payroll_ProcessTable(string reportType, string reportName, string reportFormat, [Optional]string downloadFileName)
         {
             bool flag = false;
             IWebElement parent;
             WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(30));
             try
             {
-                if(Tab_Reports.Exists(5) && Tab_Reports.Enabled)
+                if (Tab_Reports.Exists(5) && Tab_Reports.Enabled)
                 {
                     Tab_Reports.Click();
-                    if(reportType.ToLower().Equals("standard"))
+                    #region Select Submenu Standard or Custom
+                    if (reportType.ToLower().Equals("standard"))
                     {
-                        if(SubMenu_Standard.Exists(5)) SubMenu_Standard.Click();
+                        if (SubMenu_Standard.Exists(5)) SubMenu_Standard.Click();
 
                         Thread.Sleep(2000);
                         parent = SubMenu_Standard.FindElement(By.XPath("./parent::*/parent::li"));
                     }
                     else
                     {
+                        Thread.Sleep(2000);
                         if (SubMenu_Custom.Exists(5)) SubMenu_Custom.Click();
                         Thread.Sleep(2000);
                         parent = SubMenu_Custom.FindElement(By.XPath("./parent::*/parent::li"));
                     }
-                    
+                    #endregion
+
                     var reportListUI = parent.FindElements(By.XPath(".//span"));
 
-                    foreach(var report in reportListUI)
+                    foreach (var report in reportListUI)
                     {
-                        if(report.Text.ToLower().Equals(reportName.ToLower()))
+                        if (report.Text.ToLower().Equals(reportName.ToLower()))
                         {
                             report.Click();
                             Thread.Sleep(3000);
-                            if (reportFormat != "")
+                            #region Download report
+                            if (reportFormat != null)
                             {
+                                if(reportFormat=="Excel")
+                                {
+                                    if (downloadFileName != null)
+                                    {
+                                        GenericMethods.DeleteFilesFromDirectory(downloadsFolder, downloadFileName + "*.xls*");
+                                    }
+                                    else
+                                    {
+                                        GenericMethods.DeleteFilesFromDirectory(downloadsFolder, report.Text + ".xlsx");
+                                    }
+                                }
+                                
+                                Thread.Sleep(2000);
                                 report.FindElement(By.XPath("./parent::*/parent::li//span[text()='" + reportFormat + "']")).Click();
                                 Thread.Sleep(2000);
                             }
@@ -1039,34 +1139,62 @@ namespace WL.TestAuto
                                 report.FindElement(By.XPath("./parent::*/parent::li//span[text()='PDF']")).Click();
                                 Thread.Sleep(2000);
                             }
+                            #endregion
 
-                            if(reportFormat.Equals("Excel"))
+                            #region Verify Report downloaded
+                            if (reportFormat.Equals("Excel"))
                             {
-                                Thread.Sleep(5000);
-                                SendKeys.SendWait(@"C:\Users\Public\Downloads\"+report.Text+".xlsx");
-                                SendKeys.SendWait(@"{Enter}");
-                                Thread.Sleep(5000);
-                                flag = true;
+                                if (downloadFileName != "")
+                                {
+                                    if (GenericMethods.WaitForFileExists(downloadsFolder, downloadFileName + "*.xls*", 60))
+                                    {
+                                        test.Pass("Excel report download successful");
+                                        flag = true;
+                                    }
+                                    else
+                                    {
+                                        GenericMethods.CaptureScreenshot();
+                                        flag = false;
+                                        test.Fail("Failed to verify Excel report download");
+                                    }
+                                    Thread.Sleep(5000);
+                                }
+                                else if (GenericMethods.SaveFileFromDialog(downloadsFolder,report.Text + ".xlsx", 30))
+                                {
+                                    if (GenericMethods.WaitForFileExists(downloadsFolder, report.Text + ".xlsx", 30))
+                                    {
+                                        test.Pass("Excel report download successful");
+                                        flag = true;
+                                    }
+                                }
+                                else
+                                {
+                                    GenericMethods.CaptureScreenshot();
+                                    flag = false;
+                                    test.Fail("Failed to verify Excel report download");
+                                }
                             }
                             else
                             {
-                                if(Win_PDFReportLoad.Exists(5))
+                                if (Win_PDFReportLoad.Exists(5))
                                 {
-                                    if(wait.Until(driver => Win_PDFReport.Exists(30)))
+                                    if (wait.Until(driver => Win_PDFReport.Exists(30)))
                                     {
                                         flag = true;
                                     }
                                 }
 
-                                if(Win_PDFReport.Exists(10))
+                                if (Win_PDFReport.Exists(10))
                                 {
                                     driver.SwitchTo().Frame(Frame_PDFReport);
-                                    if(driver.FindElements(By.XPath("*//embed[@type='application/pdf']")).Count > 0)
+                                    if (driver.FindElements(By.XPath("*//embed[@type='application/pdf']")).Count > 0)
                                     {
+                                        test.Pass("PDF report opened successfully");
                                         flag = true;
                                     }
                                     else
                                     {
+                                        test.Fail("Failed to verify PDF Report");
                                         GenericMethods.CaptureScreenshot();
                                         flag = false;
                                     }
@@ -1074,12 +1202,12 @@ namespace WL.TestAuto
                                     Btn_CloseX.Click();
                                 }
                             }
-
+                            #endregion
                             break;
                         }
                     }
 
-                    
+
                 }
                 else
                 {
@@ -1127,35 +1255,37 @@ namespace WL.TestAuto
                             SubMenu_Standard.Click();
                         }
                     }
+                    else
+                    {
+                        test.Fail("Tab Reports not present or not enabled");
+                        GenericMethods.CaptureScreenshot();
+                        return false;
+                    }
                     Thread.Sleep(2000);
                     var parent = SubMenu_Standard.FindElement(By.XPath("./parent::*/parent::li"));
-                    Repeat:
-                    var reportListUI = parent.FindElements(By.XPath(".//li[@class='rmItem ']/a/span"));
+                
+                    var reportListUI = parent.FindElements(By.XPath(".//li[contains(@class,'rmItem')]/a/span"));
+                    
                     int failCnt = 0;
                     if (reportNames != "" && reportListUI.Count > 0)
                     {
                         string[] reports = reportNames.Split(';');
                         foreach (string report in reports)
                         {
+                        Repeat:
                             //counter for individual report
                             int count = 0;
-                            for (int r = 0; r < reportListUI.Count - 1; r++)
+                            foreach(IWebElement ele in reportListUI)
                             {
                                 count++;
-                                if (report.ToLower().Equals(reportListUI[r].Text.ToLower()))
+                                if (report.ToLower().Equals(ele.Text.ToLower()))
                                 {
-                                    reportListUI[r].Highlight();
+                                    ele.Highlight();
                                     test.Pass(report + " : Found");
                                     flag = true;
                                     break;
                                 }
                             }
-                            /*if (cnt == 0)
-                            {
-                                failCnt++;
-                                test.Fail(report + " : Not Found");
-                                flag = false;
-                            }*/
 
                             if (count == reportListUI.Count)
                             {
@@ -1165,8 +1295,16 @@ namespace WL.TestAuto
                                     action.MoveToElement(Btn_ScrollDownArrow).Perform();*/
                                     Btn_ScrollDownArrow.Click();
                                     Thread.Sleep(2000);
+                                    reportListUI = parent.FindElements(By.XPath(".//li[contains(@class,'rmItem')]/a/span"));
                                     goto Repeat;
                                 }
+                                //Reset it back to top
+                                while (Btn_ScrollUpArrow.Exists(5))
+                                {
+                                    Btn_ScrollUpArrow.Click();
+                                    Thread.Sleep(2000);
+                                }
+                                reportListUI = parent.FindElements(By.XPath(".//li[contains(@class,'rmItem')]/a/span"));
                                 failCnt++;
                                 test.Fail(report + " : Not Found");
                                 flag = false;
@@ -1185,6 +1323,12 @@ namespace WL.TestAuto
                         GenericMethods.CaptureScreenshot(); flag = false;
                     }
                 }
+                else
+                {
+                    test.Fail("Payments table not found");
+                    GenericMethods.CaptureScreenshot();
+                    flag = false;
+                }
 
             }
             catch (Exception ex)
@@ -1200,19 +1344,20 @@ namespace WL.TestAuto
         }
 
         //Verify Reports in Payroll Payments Page
-        public bool Fn_Verify_Reports_In_Payroll_PaymentsTable(string processGroup, string runType, string reportType, string reportName, string reportFormat)
+        public bool Fn_Verify_Reports_In_Payroll_PaymentsTable(string processGroup, string runType, string reportType, string reportName, string reportFormat, [Optional] string downloadFileName)
         {
             bool flag = false;
             IWebElement parent;
             WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(30));
             try
-            {   
+            {
 
-                if(Fn_Search_Select_Latest_ProcessGroup_Payments(processGroup, runType))
+                if (Fn_Search_Select_Latest_ProcessGroup(processGroup, runType))
                 {
                     if (Tab_Reports.Exists(5) && Tab_Reports.Enabled)
                     {
                         Tab_Reports.Click();
+                        #region Select Submenu Standard or Custom
                         if (reportType.ToLower().Equals("standard"))
                         {
                             if (SubMenu_Standard.Exists(5)) SubMenu_Standard.Click();
@@ -1222,13 +1367,16 @@ namespace WL.TestAuto
                         }
                         else
                         {
+                            Thread.Sleep(2000);
                             if (SubMenu_Custom.Exists(5)) SubMenu_Custom.Click();
                             Thread.Sleep(2000);
                             parent = SubMenu_Custom.FindElement(By.XPath("./parent::*/parent::li"));
                         }
+                        #endregion
 
-                        Repeat:
+                    
                         var reportListUI = parent.FindElements(By.XPath(".//li[contains(@class,'rmItem')]/a/span"));
+                    Repeat:
                         int count = 0;
                         foreach (var report in reportListUI)
                         {
@@ -1239,8 +1387,21 @@ namespace WL.TestAuto
                                 report.Click();
                                 Thread.Sleep(3000);
 
+                                #region Download Report
                                 if (reportFormat != "")
                                 {
+                                    if (reportFormat == "Excel")
+                                    {
+                                        if (downloadFileName != null)
+                                        {
+                                            GenericMethods.DeleteFilesFromDirectory(downloadsFolder, downloadFileName + "*.xls*");
+                                        }
+                                        else
+                                        {
+                                            GenericMethods.DeleteFilesFromDirectory(downloadsFolder, report.Text + ".xlsx");
+                                        }
+                                    }
+
                                     var typeList = report.FindElements(By.XPath("./ancestor::div[@class='rmScrollWrapContainer']/following::div//span[text()='" + reportFormat + "']"));
                                     if (typeList.Count == 0)
                                     {
@@ -1269,45 +1430,41 @@ namespace WL.TestAuto
                                     }
                                     Thread.Sleep(2000);
                                 }
+                                #endregion
 
+                                #region Verify report downloaded
                                 if (reportFormat.Equals("Excel"))
                                 {
-                                    Thread.Sleep(5000);
-                                    string fileSavePath = @"C:\Users\" + Environment.UserName + "\\Downloads\\" + report.Text + DateTime.Now.ToString() + ".xls";
-                                    if(GenericMethods.SaveFileFromDialog(fileSavePath))
+                                    if (downloadFileName != null)
                                     {
-                                        test.Info("Excel Saved successfully");
-                                    }
-                                    /*else if(AutoItX.WinExists("WorkLinks - Google Chrome", "") !=0)
-                                    {
-                                        AutoItX.ControlFocus("WorkLinks - Google Chrome", "", "Downloads bar");
-                                        AutoItX.ControlClick("WorkLinks - Google Chrome", "", "Options menu", "left");
-                                        string text = AutoItX.ControlGetText("WorkLinks - Google Chrome", "", "Options menu");
-                                    }*/
-                                    else
-                                    {
-                                        var directory = new DirectoryInfo(@"C:\Users\" + Environment.UserName + "\\Downloads\\");
-                                        var myFile = directory.GetFiles()
-                                                        .OrderByDescending(f => f.LastWriteTime)
-                                                        .First();
-
-                                        string newReportName = report.Text
-                                            .Replace(".", "")
-                                            .Replace("/", "")
-                                            .Replace(" ", "")
-                                            .Replace("-", "");
-                                        if (myFile.Name.Contains(newReportName))
+                                        if (GenericMethods.WaitForFileExists(downloadsFolder, downloadFileName + "*.xls*", 60))
                                         {
+                                            test.Pass("Excel report download successful");
                                             flag = true;
                                         }
                                         else
                                         {
+                                            GenericMethods.CaptureScreenshot();
+                                            flag = false;
+                                            test.Fail("Failed to verify Excel report download");
+                                        }
+                                        Thread.Sleep(5000);
+                                    }
+                                    else if (GenericMethods.SaveFileFromDialog(downloadsFolder, report.Text + ".xlsx"))
+                                    {
+                                        if (GenericMethods.WaitForFileExists(downloadsFolder, report.Text + ".xlsx", 30))
+                                        {
+                                            test.Pass("Excel report download successful");
                                             flag = true;
                                         }
                                     }
+                                    else
+                                    {
+                                        GenericMethods.CaptureScreenshot();
+                                        flag = false;
+                                        test.Fail("Failed to verify Excel report download");
+                                    }
 
-                                    /*SendKeys.SendWait(@"C:\Users\Public\Downloads\" + report.Text + ".xlsx");
-                                    SendKeys.SendWait(@"{Enter}");*/
                                     Thread.Sleep(5000);
                                 }
                                 else
@@ -1325,10 +1482,12 @@ namespace WL.TestAuto
                                         driver.SwitchTo().Frame(Frame_PDFReport);
                                         if (driver.FindElements(By.XPath("*//embed[@type='application/pdf']")).Count > 0)
                                         {
+                                            test.Pass("PDF report opened successfully");
                                             flag = true;
                                         }
                                         else
                                         {
+                                            test.Fail("Failed to verify PDF Report");
                                             GenericMethods.CaptureScreenshot();
                                             flag = false;
                                         }
@@ -1336,7 +1495,7 @@ namespace WL.TestAuto
                                         Btn_CloseX.Click();
                                     }
                                 }
-
+                                #endregion
                                 break;
                             }
 
@@ -1344,12 +1503,19 @@ namespace WL.TestAuto
                             {
                                 if (Btn_ScrollDownArrow.Exists(5))
                                 {
-                                    /*Actions action = new Actions(driver);
-                                    action.MoveToElement(Btn_ScrollDownArrow).Perform();*/
                                     Btn_ScrollDownArrow.Click();
                                     Thread.Sleep(2000);
+                                    reportListUI = parent.FindElements(By.XPath(".//li[contains(@class,'rmItem')]/a/span"));
                                     goto Repeat;
                                 }
+                                //Reset it back to top
+                                while (Btn_ScrollUpArrow.Exists(5))
+                                {
+                                    Btn_ScrollUpArrow.Click();
+                                    Thread.Sleep(2000);
+                                }
+                                reportListUI = parent.FindElements(By.XPath(".//li[contains(@class,'rmItem')]/a/span"));
+                                test.Fail(report + " : Not Found");
                                 flag = false;
                             }
                         }
@@ -1372,21 +1538,21 @@ namespace WL.TestAuto
             {
                 test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
                 GenericMethods.CaptureScreenshot();
-                EndTest();
-                //throw new Exception(ex.Message);
+                //EndTest();
+                throw new Exception(ex.Message);
             }
             return flag;
         }
 
         //Search and select latest processgroup 
-        public bool Fn_Search_Select_Latest_ProcessGroup_Payments(string processGroup, string runType)
+        public bool Fn_Search_Select_Latest_ProcessGroup(string processGroup, string runType)
         {
             bool flag = false;
             try
             {
                 if (processGroup != "")
                 {
-                    DrpDwn_ProcessGrp.SelectValueFromDropDown(List_AllDrpDwn, processGroup);
+                    DrpDwn_ProcessGrp.SelectValueFromDropDown(processGroup);
                 }
                 else
                 {
@@ -1396,12 +1562,12 @@ namespace WL.TestAuto
 
                 if (runType != "")
                 {
-                    DrpDwn_RunType.SelectValueFromDropDown(List_AllDrpDwn, runType);
+                    DrpDwn_RunType.SelectValueFromDropDown(runType);
                 }
 
                 Btn_Search.Click();
-
-                if (Tbl_PaymentsPayroll.Exists(10))
+                Thread.Sleep(5000);
+                if (Tbl_PaymentsPayroll.Exists(40))
                 {
                     var trList = Tbl_PaymentsPayroll.FindElements(By.XPath(".//tbody/tr"));
                     if (trList.Count > 0)
@@ -1411,6 +1577,7 @@ namespace WL.TestAuto
                             if (tr.FindElements(By.XPath(".//td[text()='" + processGroup + "']")).Count > 0)
                             {
                                 tr.Click();
+                                test.Pass("Latest record found and selected");
                                 flag = true;
                                 break;
                             }
@@ -1434,56 +1601,54 @@ namespace WL.TestAuto
             {
                 test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
                 GenericMethods.CaptureScreenshot();
-                EndTest();
-                //throw new Exception(ex.Message);
+                //EndTest();
+                throw new Exception(ex.Message);
             }
 
 
             return flag;
         }
 
-        //Save Mass payslip file and verify
-        public bool Fn_Save_Mass_Payslip_File_And_Verify(string processGroup, string runType, string payslipPath, string payslipName)
+        /// <summary>
+        /// Save Mass payslip file and verify
+        /// </summary>
+        /// <param name="payslipPath"></param>
+        /// <param name="payslipName"></param>
+        /// <returns></returns>
+        public bool Fn_Save_Mass_Payslip_File_And_Verify(string payslipPath, string payslipName)
         {
             bool flag = false;
             try
             {
-                if(Fn_Search_Select_Latest_ProcessGroup_Payments(processGroup, runType))
+                if (File.Exists(payslipPath + payslipName))
                 {
-                    if(File.Exists(payslipPath + payslipName))
-                    {
-                        File.Delete(payslipPath + payslipName);
-                    }
+                    File.Delete(payslipPath + payslipName);
+                }
 
-                    if (Directory.Exists((payslipPath + payslipName).Replace(".zip", "")))
-                    {
-                        Directory.Delete((payslipPath + payslipName).Replace(".zip", ""), true); //remove folder and sub folder
-                    }
+                if (Directory.Exists((payslipPath + payslipName).Replace(".zip", "")))
+                {
+                    Directory.Delete((payslipPath + payslipName).Replace(".zip", ""), true); //remove folder and sub folder
+                }
 
-                    if (Tab_MassPayslipFile.Exists(10))
+                if (Tab_MassPayslipFile.Exists(10))
+                {
+                    Tab_MassPayslipFile.Click();
+                    if (GenericMethods.SaveFileFromDialog(payslipPath, payslipName, 60))
                     {
-                        Tab_MassPayslipFile.Click();
-                        if(GenericMethods.SaveFileFromDialog(payslipPath + payslipName, 60))
+                        if (GenericMethods.ExtractZipFile(payslipPath + payslipName, (payslipPath + payslipName).Replace(".zip", "")))
                         {
-                            if(GenericMethods.ExtractZipFile(payslipPath + payslipName, (payslipPath + payslipName).Replace(".zip","")))
-                            {
-                                flag = true;
-                                test.Pass("Mass Payslip file saved, extracted and verified successfully");
-                            }
-                            else
-                            {
-                                test.Fail("Failed to Extract or verify Zip file content");
-                            }
+                            flag = true;
+                            test.Pass("Mass Payslip file saved, extracted and verified successfully");
                         }
                         else
                         {
-                            test.Fail("Failed to Save file from Browser");
+                            test.Fail("Failed to Extract or verify Zip file content");
                         }
                     }
-                }
-                else
-                {
-                    test.Fail("Failed to select payroll process group record");
+                    else
+                    {
+                        test.Fail("Failed to Save file from Browser");
+                    }
                 }
             }
             catch (Exception ex)
@@ -1496,9 +1661,271 @@ namespace WL.TestAuto
             return flag;
         }
 
+        /// <summary>
+        /// Verify Export options in Payments
+        /// </summary>
+        /// <param name="optionList"></param>
+        /// <returns></returns>
+        public bool Fn_Verify_Export_Options_In_Payments(string optionList, [Optional] string fileName)
+        {
+            bool flag = true;
+            try
+            {
+                foreach (string opt in optionList.Split(';'))
+                {
+                    if (Tab_Export.Exists(10))
+                    {
+                        Tab_Export.Click();
+                        Thread.Sleep(3000);
+                    }
+                    else
+                    {
+                        test.Fail("Export tab is disabled or unavailable");
+                        return false;
+                    }
 
+                    var option = driver.FindElements(By.XPath(".//ul[@class='rtbActive rtbGroup rtbLevel1']//span[text()='" + opt + "']"));
+                    if (option.Count > 0)
+                    {
+                        if (fileName != "" || fileName != null)
+                        {
+                            if(!GenericMethods.DeleteFilesFromDirectory(downloadsFolder, fileName))
+                            {
+                                flag = false;
+                            }
+                        }
 
+                        option[0].Click();
+                        Thread.Sleep(3000);
+                        if (opt.Equals("CSB"))
+                        {
+                            if (Btn_CloseX.Exists(10))
+                            {
+                                Btn_CloseX.Click();
+                            }
+                        }
 
+                        if(fileName!="" || fileName!=null)
+                        {
+                            if(!GenericMethods.WaitForFileExists(downloadsFolder, fileName))
+                            {
+                                test.Fail("Export option: " + opt + " verification failed");
+                                flag = false;
+                            }
+                        }
+
+                        //Steps to verify the downloaded files
+                        test.Pass("Export option: " + opt + " verified successfully");
+                    }
+                    else
+                    {
+                        test.Fail("Unable to find Export option: " + opt);
+                        flag = false;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
+                GenericMethods.CaptureScreenshot();
+                EndTest();
+                //throw new Exception(ex.Message);
+            }
+            return flag;
+        }
+
+        /// <summary>
+        /// Verifies if the payslip is displayed for the payperiod number from the latest
+        /// Like, for second last pay period the payPeriodNumber will be 2
+        /// </summary>
+        /// <param name="payPeriodNumber"></param>
+        /// <returns></returns>
+        public bool Fn_Verify_Employee_Payslips_Displayed(int payPeriodNumber)
+        {
+            bool flag = false;
+            try
+            {
+                if (Btn_PaySlips.Exists(10))
+                {
+                    Btn_PaySlips.Click();
+                    if (Lbl_PaySlips.Exists(45))
+                    {
+                        driver.SwitchTo().Frame(Frame_EmployeeWizard);
+                        if (Table_EmployeePayrollPeriod.Exists(10) && Table_EmployeePayrollPeriod.FindElements(By.XPath(".//tbody/tr")).Count > 0)
+                        {
+                            Table_EmployeePayrollPeriod.FindElements(By.XPath(".//tbody/tr"))[payPeriodNumber - 1].Click();
+                            Thread.Sleep(5000);
+                            if (PDFReportArea.Exists(180))
+                            {
+                                driver.SwitchTo().Frame(PDFReportArea);
+                                if (driver.FindElement(By.XPath("//embed[@type='application/pdf']")).Exists(180))
+                                {
+                                    test.Pass("Payslip found for the selected pay period");
+                                    driver.SwitchTo().DefaultContent();
+                                    flag = true;
+                                }
+                                else
+                                {
+                                    test.Fail("Payslip file not displayed for selected pay period");
+                                    driver.SwitchTo().DefaultContent();
+                                    flag = false;
+                                }
+                            }
+                            else
+                            {
+                                test.Fail("Payslip file not displayed for selected pay period");
+                                flag = false;
+                            }
+                        }
+                        Btn_CloseX.Click();
+                        driver.SwitchTo().DefaultContent();
+                    }
+                    else
+                    {
+                        test.Fail("Unable to verify payslip window opened for the Employee");
+                        flag = false;
+                    }
+                }
+                else
+                {
+                    test.Fail("Payslips button not available or disabled for the Employee");
+                    flag = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
+                GenericMethods.CaptureScreenshot();
+                EndTest();
+                //throw new Exception(ex.Message);
+            }
+            return flag;
+        }
+
+        /// <summary>
+        /// Search Employee record in ROE creation with process Group and Employee Name
+        /// </summary>
+        /// <param name="processGroup"></param>
+        /// <param name="empFName"></param>
+        /// <param name="empLName"></param>
+        /// <returns></returns>
+        public bool Fn_Search_ROE_Creation(string processGroup, string empFName, string empLName)
+        {
+            bool flag = false;
+            try
+            {
+                if (processGroup != "")
+                {
+                    DrpDwn_ProcessGrp.SelectValueFromDropDown(processGroup);
+                }
+
+                Btn_Search.Click();
+                if (Tbl_ROECreationSearch.Exists(10))
+                {
+                    //int cnt = 0;
+                    //var trList = Tbl_ROECreationSearch.FindElements(By.XPath(".//tbody/tr"));
+                    //if (trList.Count > 0)
+                    //{
+                    //    foreach (IWebElement tr in trList)
+                    //    {
+                    //        cnt++;
+                    //        tr.Click();
+                    //        if (tr.FindElements(By.XPath(".//td[text()='" + empFName + "']")).Count > 0)
+                    //        {
+                    //            if (tr.FindElements(By.XPath(".//td[text()='" + empLName + "']")).Count > 0)
+                    //            {
+                    //                test.Pass("Employee record found in ROE Creation Search");
+                    //                flag = true;
+                    //                break;
+                    //            }
+                    //        }
+                    //        if (trList.Count == cnt)
+                    //        {
+                    //            test.Fail("Failed to find Employee record in ROE Creation Search");
+                    //            break;
+                    //        }
+                    //    }
+                    //}
+                    if (Tbl_ROECreationSearch.FindElements(By.XPath(".//tbody/tr//td[text()='" + empFName + "']/parent::tr//td[text()='" + empLName + "']")).Count > 0)
+                    {
+                        Tbl_ROECreationSearch.FindElement(By.XPath(".//tbody/tr//td[text()='" + empFName + "']/parent::tr")).Click();
+                        test.Pass("Employee record found in ROE Creation Search");
+                        flag = true;
+                    }
+                    else if (Tbl_ROECreationSearch.FindElements(By.XPath("//*[text()='No records to display.']")).Count > 0)
+                    {
+                        test.Fail("No records found in ROE Creation table");
+                    }
+                    else
+                    {
+                        test.Fail("No records found in ROE Creation table");
+                    }
+                }
+                else
+                {
+                    test.Fail("ROE Creation search table not found");
+                }
+            }
+            catch (Exception ex)
+            {
+                test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
+                GenericMethods.CaptureScreenshot();
+                EndTest();
+                //throw new Exception(ex.Message);
+            }
+            return flag;
+        }
+
+        /// <summary>
+        /// Export ROE created and verify the blk file
+        /// </summary>
+        /// <param name="empFName"></param>
+        /// <param name="empLName"></param>
+        /// <returns></returns>
+        public bool Fn_Export_ROE_And_Verify_Record(string empFName, string empLName)
+        {
+            bool flag = false;
+            try
+            {
+                //Delete .blk files if any
+                GenericMethods.DeleteFilesFromDirectory(downloadsFolder, "*.blk");
+
+                if (Tab_ExportROE.Exists(10))
+                {
+                    Tab_ExportROE.Click();
+                    //Wait for file download
+
+                    if (GenericMethods.WaitForFileExists(downloadsFolder, "*.blk", 30))
+                    {
+                        string FileText = File.ReadAllText(Directory.EnumerateFiles(downloadsFolder, "*.blk").First());
+                        if (FileText.Contains("<FN>" + empFName + "</FN>") && FileText.Contains("<LN>" + empLName + "</LN>"))
+                        {
+                            test.Pass("ROE Exported and verified Employee : " + empFName + " " + empLName);
+                            flag = true;
+                        }
+                    }
+                    else
+                    {
+                        test.Fail("Export ROE file not found/downloaded");
+                    }
+
+                    Thread.Sleep(2000);
+                }
+                else
+                {
+                    test.Fail("Export ROE file not found/downloaded");
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
+                GenericMethods.CaptureScreenshot();
+                EndTest();
+                //throw new Exception(ex.Message);
+            }
+            return flag;
+        }
 
         #endregion
     }

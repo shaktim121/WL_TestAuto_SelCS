@@ -19,13 +19,50 @@ namespace WL.TestAuto
         public static string dbPwd = string.Empty;
         public static string connectionString = string.Empty;
 
+        //Function to create sql connection
+        public static string CreateConnectionString(string DBSrv, string DB, string user, string pwd, bool winAuth)
+        {
+            string cnn;
+            try
+            {
+                if (winAuth)
+                {
+                    cnn = @"Data Source=" + DBSrv + ";Initial Catalog=" + DB + ";Integrated Security=SSPI;";
+                }
+                else
+                {
+                    cnn = @"Data Source=" + DBSrv + ";Initial Catalog=" + DB + ";User ID=" + user + ";Password=" + pwd + "";
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message + " " + ex.StackTrace);
+            }
+            return cnn;
+        }
+
         //Connect to Automation DB and Return the SQLConnection
         public static SqlConnection DBConnect(string dataSource, string dbName, string dbUser, string dbPwd, bool winAuth)
-        {   
+        {
             SqlConnection cnn;
             try
             {
                 connectionString = CreateConnectionString(dataSource, dbName, dbUser, dbPwd, winAuth);
+                cnn = new SqlConnection(connectionString);
+                cnn.Open();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("DB Connection Failed: " + ex.Message + " " + ex.StackTrace);
+            }
+            return cnn;
+        }
+
+        public static SqlConnection DBConnect(string connectionString)
+        {
+            SqlConnection cnn;
+            try
+            {
                 cnn = new SqlConnection(connectionString);
                 cnn.Open();
             }
@@ -50,6 +87,118 @@ namespace WL.TestAuto
             }
         }
 
+        //Function to execute any SQL Query
+        public static DataSet ExecuteSQLQuery(string sqlQuery, string connectionString)
+        {
+            DataSet data = new DataSet();
+            SqlDataAdapter adapter;
+            SqlConnection cnn;
+            SqlCommand command;
+
+            string sql;
+
+            try
+            {
+                cnn = new SqlConnection(connectionString);
+                sql = sqlQuery;
+                using (command = cnn.CreateCommand())
+                {
+                    command.CommandText = sql;
+                    adapter = new SqlDataAdapter(command);
+                    adapter.Fill(data);
+                }
+
+                adapter.Dispose();
+                command.Dispose();
+                cnn.DBDispose();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message + " " + ex.StackTrace);
+            }
+            return data;
+        }
+
+        //Function to update using sql query
+        public static int ExecuteNonSQLQuery(string sqlQuery, string connectionString)
+        {
+            SqlConnection cnn;
+            SqlCommand command;
+            string sql; int rows;
+
+            try
+            {
+                cnn = DBConnect(connectionString);
+                sql = sqlQuery;
+                using (command = cnn.CreateCommand())
+                {
+                    command.CommandText = sql;
+                    rows = command.ExecuteNonQuery();
+                }
+                command.Dispose();
+                cnn.DBDispose();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message + " " + ex.StackTrace);
+            }
+            return rows;
+        }
+
+        //Execute StoredProc
+        //DataSet ds = GlobalDB.ExecuteStoredProc("EmployeeAnniversaryListing_report", "@databaseName:WLAT;@securityRoleId:1001;@securityUserId:58;@languageCode:EN");
+        public static DataSet ExecuteStoredProc(string storedProc, string parameters, string connectionString)
+        {
+            DataSet data = new DataSet();
+            SqlDataAdapter adapter;
+            SqlConnection cnn;
+            SqlCommand command;
+            string[] parameter = parameters.Split(';');
+
+            try
+            {
+                cnn = new SqlConnection(connectionString);
+                command = new SqlCommand(storedProc, cnn);
+                command.CommandType = CommandType.StoredProcedure;
+
+                foreach (string str in parameter)
+                {
+                    command.Parameters.Add(new SqlParameter(str.Split(':')[0], str.Split(':')[1]));
+                }
+
+                adapter = new SqlDataAdapter(command);
+                adapter.Fill(data);
+
+
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message + " " + ex.StackTrace);
+            }
+
+            return data;
+        }
+
+        //Verify if Stored Proc Exists
+        public static bool IsStoredProcedureExists(string cnn, string storedProc)
+        {
+            bool flag = false;
+            try
+            {
+                string chkSql = "select * from sys.objects where type_desc = 'SQL_STORED_PROCEDURE' AND name = '" + storedProc + "'";
+                if (ExecuteSQLQuery(chkSql, cnn).Tables[0].Rows.Count > 0)
+                {
+                    flag = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message + " " + ex.StackTrace);
+            }
+
+            return flag;
+        }
+
         //Function to load all the table data together
         public static DataSet LoadTestData(this string testName)
         {
@@ -65,7 +214,7 @@ namespace WL.TestAuto
 
             try
             {
-                cnn = DBConnect(dataSource, dbName, dbUser, dbPwd, true);
+                cnn = DBConnect(dataSource, dbName, dbUser, dbPwd, false);
                 sql = "select * from [" + "dbName".AppSettings() + "].[dbo].[" + testName + "];";
                 //sql = "select TOP (1) ["+key_name+"] from ["+dbName+"].[dbo].["+testName+"];";
                 using (command = cnn.CreateCommand())
@@ -110,113 +259,8 @@ namespace WL.TestAuto
             return sval;
         }
 
-        //Function to create sql connection
-        public static string CreateConnectionString(string DBSrv, string DB, string user, string pwd, bool winAuth)
-        {
-            string cnn;
-            try
-            {
-                if (winAuth)
-                {
-                    cnn = @"Data Source=" + DBSrv + ";Initial Catalog=" + DB + ";Integrated Security=SSPI;";
-                }
-                else
-                {
-                    cnn = @"Data Source=" + DBSrv + ";Initial Catalog=" + DB + ";User ID=" + user + ";Password=" + pwd + "";
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message + " " + ex.StackTrace);
-            }
-            return cnn;
-        }
-        
-        //Function to execute any SQL Query
-        public static DataSet ExecuteSQLQuery(string sqlQuery, string connectionString)
-        {
-            DataSet data = new DataSet();
-            SqlDataAdapter adapter;
-            SqlConnection cnn;
-            SqlCommand command;
-
-            string sql;
-
-            try
-            {
-                cnn = new SqlConnection(connectionString);
-                sql = sqlQuery;
-                using (command = cnn.CreateCommand())
-                {
-                    command.CommandText = sql;
-                    adapter = new SqlDataAdapter(command);
-                    adapter.Fill(data);
-                }
-
-                adapter.Dispose();
-                command.Dispose();
-                cnn.DBDispose();
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message + " " + ex.StackTrace);
-            }
-            return data;
-        }
-
-        //Execute StoredProc
-        //DataSet ds = GlobalDB.ExecuteStoredProc("EmployeeAnniversaryListing_report", "@databaseName:WLAT;@securityRoleId:1001;@securityUserId:58;@languageCode:EN");
-        public static DataSet ExecuteStoredProc(string storedProc, string parameters, string connectionString)
-        {
-            DataSet data = new DataSet();
-            SqlDataAdapter adapter;
-            SqlConnection cnn;
-            SqlCommand command;
-            string[] parameter = parameters.Split(';') ;
-
-            try
-            {
-                cnn = new SqlConnection(connectionString);
-                command = new SqlCommand(storedProc, cnn);
-                command.CommandType = CommandType.StoredProcedure;
-                
-                foreach(string str in parameter)
-                {
-                    command.Parameters.Add(new SqlParameter(str.Split(':')[0], str.Split(':')[1]));
-                }
-                
-                adapter = new SqlDataAdapter(command);
-                adapter.Fill(data);
 
 
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message + " " + ex.StackTrace);
-            }
 
-            return data;
-        }
-
-        //Verify if Stored Proc Exists
-        public static bool IsStoredProcedureExists(string cnn, string storedProc)
-        {
-            bool flag = false;
-
-            try
-            {
-                string chkSql = "select * from sys.objects where type_desc = 'SQL_STORED_PROCEDURE' AND name = '"+storedProc+"'";
-                if(ExecuteSQLQuery(chkSql, cnn).Tables[0].Rows.Count > 0)
-                {
-                    flag = true;
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message + " " + ex.StackTrace);
-            }
-
-            return flag;
-        }
     }
 }

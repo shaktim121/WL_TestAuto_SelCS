@@ -12,9 +12,9 @@ namespace WL.TestAuto
 {
     public static class Browsers
     {
-        private static readonly string baseURL = ConfigurationManager.AppSettings["url"];
-        private static readonly string browser = ConfigurationManager.AppSettings["browser"];
-        public static void Init()
+        //private static readonly string baseURL = ConfigurationManager.AppSettings["url"];
+        //private static readonly string browser = ConfigurationManager.AppSettings["browser"];
+        public static void Init(string browser, string baseURL)
         {
             switch (browser)
             {
@@ -46,13 +46,13 @@ namespace WL.TestAuto
         public static void Close()
         {
             //_driver.Close();
-            if(GetDriver!=null)
+            if (GetDriver != null)
             {
                 GetDriver.Quit();
                 GetDriver.Dispose();
                 GetDriver = null;
             }
-            
+
         }
     }
 }
