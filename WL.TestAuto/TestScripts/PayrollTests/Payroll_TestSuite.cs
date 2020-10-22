@@ -58,11 +58,108 @@ namespace WL.TestAuto
             }
         }
 
+        #region New Hire
+        private string EmpNum = Utilities.Random_Number(100001, 9999999).ToString(); // data.GetTestData("Emp_Number");
+        private string FirstName = "Derek"; //data.GetTestData("First_Name");
+        private string LastName = "Shepard"; // data.GetTestData("Last_Name");
+        private string SIN = SinGenerator.GetValidSin(); //data.GetTestData("SIN");
+        //private string NewSIN = "754420891"; //https://www.fakenamegenerator.com/social-insurance-number.php
+        private string NewSIN = SinGenerator.GetValidSin();
+        private string NewFName = "Sandra";
+        private string NewLName = "Robert";
+
+        [TestMethod]
+        //26.	HR Screen - Hire
+        public void WL_CAN_NEW_HIRE_001000_Hire_an_Employee()
+        {
+            //Update Edit and Terminate case with Emp_Number
+            string update_sql_hire = "UPDATE dbo.WL_CAN_NEW_HIRE_001000_Hire_an_Employee SET Emp_Number = " + EmpNum + " WHERE TestCaseName = 'WL_CAN_NEW_HIRE_001000_Hire_an_Employee';";
+            string update_sql_edit = "UPDATE dbo.WL_CAN_NEW_HIRE_001100_Edit_an_Employee_record SET Emp_Number = " + EmpNum + " WHERE TestCaseName = 'WL_CAN_NEW_HIRE_001100_Edit_an_Employee_record';";
+            string update_sql_term = "UPDATE dbo.WL_CAN_NEW_HIRE_001200_Terminate_an_Employee_record SET Emp_Number = " + EmpNum + " WHERE TestCaseName = 'WL_CAN_NEW_HIRE_001200_Terminate_an_Employee_record';";
+
+            string DBServer = "dataSource".AppSettings();
+            string DBName = "dbName".AppSettings();
+            string DBuserName = "dbUser".AppSettings();
+            string DBpassword = "dbPwd".AppSettings();
+            string connection = GlobalDB.CreateConnectionString(DBServer, DBName, DBuserName, DBpassword, false);
+            if (GlobalDB.ExecuteNonSQLQuery(update_sql_edit, connection) > 0 && GlobalDB.ExecuteNonSQLQuery(update_sql_term, connection) > 0 && GlobalDB.ExecuteNonSQLQuery(update_sql_hire, connection) > 0)
+            {
+                test.Info("Employee Number updated successfully for Hire, Edit and Terminate Employee");
+            }
+
+            string lang = data.GetTestData("User_Language");
+            string userProfile = data.GetTestData("User_Profile");
+            string hrScreen1 = data.GetTestData("HR_Screen1");
+            string hrScreen2 = data.GetTestData("HR_Screen2");
+            string payScreen = data.GetTestData("Payroll_Screen");
+            string processGrp = GenericMethods.GetXMLNodeValue(xmlDataFile, "ProcessGroup");
+            string empState = data.GetTestData("Emp_State");
+            string empDetails = data.GetTestData("Verify_Emp_Details");
+
+            string suffix = DateTime.Now.ToString("HHmm");
+            //EmpNum = (Convert.ToInt32(EmpNum) + 1).ToString();
+            FirstName += suffix;
+            LastName += suffix;
+
+            //Change User language after log in
+            Pages.Home.Fn_ChangeUserLanguage(lang);
+
+            //Select User Profile
+            Pages.Home.Fn_SelectUserProfile(userProfile);
+
+            //Navigate to Employee to search employee
+            Pages.HR.Fn_NavigateThroughHumanResources(hrScreen1);
+            if (Pages.HR.Fn_Search_Employee_Exists(EmpNum, FirstName, LastName, "", false))
+            {
+                test.Pass("Employee Does not Exist");
+            }
+            else
+            {
+                test.Pass("Employee already Exists");
+                EndTest();
+            }
+
+            //Navigate to Add Wizard Scren in Human Resources
+            Pages.HR.Fn_NavigateThroughHumanResources(hrScreen2);
+            Thread.Sleep(5000);
+            if (Pages.HR.Fn_Hire_Employee(EmpNum, FirstName, LastName, SIN, processGrp))
+            {
+                //Verify Employee hired Successfully
+                Pages.Payroll.Fn_NavigateThroughPayroll(payScreen);
+                if (Pages.HR.Fn_Search_Employee_Exists(EmpNum, FirstName, LastName, "", true))
+                {
+                    test.Pass("Employee Hired Successfully : " + FirstName + " " + LastName);
+                }
+                else
+                {
+                    test.Fail("Employee Hire failed/unable to find hired employee : " + FirstName + " " + LastName);
+                    GenericMethods.CaptureScreenshot();
+                    Assert.Fail("Failed to Hire Employee");
+                }
+            }
+            else
+            {
+                GenericMethods.CaptureScreenshot();
+                Assert.Fail("Failed to Hire Employee");
+            }
+
+            Thread.Sleep(5000);
+
+            if (!Pages.Payroll.Fn_Verify_Employee_Details_In_Payroll_Position(empState, empDetails))
+            {
+                GenericMethods.CaptureScreenshot();
+                Assert.Fail();
+            }
+
+        }
+
+        #endregion
+
         [TestMethod]
         public void WL_CAN_Payroll_001200_Calculate_Payroll()
         {
             string userLang = data.GetTestData("User_Language");
-            string userProf = data.GetTestData("User_Profile");
+            string userProf = "userProfile".AppSettings();
             string screen = data.GetTestData("Payroll_Screen");
 
             string processGrp = GenericMethods.GetXMLNodeValue(xmlDataFile, "ProcessGroup");
@@ -98,7 +195,7 @@ namespace WL.TestAuto
         {
             #region Data Variables
             string userLang = data.GetTestData("User_Language");
-            string userProf = data.GetTestData("User_Profile");
+            string userProf = "userProfile".AppSettings();
             string screen = data.GetTestData("Payroll_Screen");
             string reportType = data.GetTestData("Report_Type");
             string reportName = data.GetTestData("Report_Name");
@@ -167,6 +264,7 @@ namespace WL.TestAuto
             else
             {
                 test.Fail("Failed to verify Standard Payroll Funding report header");
+                Assert.Fail();
             }
 
             //Verify Sections in the report Exist
@@ -237,7 +335,7 @@ namespace WL.TestAuto
         {
             #region Data Variables
             string userLang = data.GetTestData("User_Language");
-            string userProf = data.GetTestData("User_Profile");
+            string userProf = "userProfile".AppSettings();
             string screen = data.GetTestData("Payroll_Screen");
 
             string processGrp = GenericMethods.GetXMLNodeValue(xmlDataFile, "ProcessGroup");
@@ -426,7 +524,7 @@ namespace WL.TestAuto
         {
             #region Data Variables
             string userLang = data.GetTestData("User_Language");
-            string userProf = data.GetTestData("User_Profile");
+            string userProf = "userProfile".AppSettings();
             string screen = data.GetTestData("Payroll_Screen");
 
 
@@ -512,7 +610,7 @@ namespace WL.TestAuto
         {
             #region Data Variable
             string userLang = data.GetTestData("User_Language");
-            string userProf = data.GetTestData("User_Profile");
+            string userProf = "userProfile".AppSettings();
             string screen = data.GetTestData("Payroll_Screen");
 
 
@@ -598,7 +696,7 @@ namespace WL.TestAuto
         {
             #region Data Variables
             string userLang = data.GetTestData("User_Language");
-            string userProf = data.GetTestData("User_Profile");
+            string userProf = "userProfile".AppSettings();
             string screen = data.GetTestData("Payroll_Screen");
 
 
@@ -684,7 +782,7 @@ namespace WL.TestAuto
         {
             #region Data Variables
             string userLang = data.GetTestData("User_Language");
-            string userProf = data.GetTestData("User_Profile");
+            string userProf = "userProfile".AppSettings();
             string screen = data.GetTestData("Payroll_Screen");
 
 
@@ -768,7 +866,7 @@ namespace WL.TestAuto
         {
             #region Data Variables
             string userLang = data.GetTestData("User_Language");
-            string userProf = data.GetTestData("User_Profile");
+            string userProf = "userProfile".AppSettings();
             string screen = data.GetTestData("Payroll_Screen");
 
 
@@ -853,7 +951,7 @@ namespace WL.TestAuto
         {
             #region Data Variables
             string userLang = data.GetTestData("User_Language");
-            string userProf = data.GetTestData("User_Profile");
+            string userProf = "userProfile".AppSettings();
             string screen = data.GetTestData("Payroll_Screen");
 
 
@@ -937,7 +1035,7 @@ namespace WL.TestAuto
         {
             #region Data Variables
             string userLang = data.GetTestData("User_Language");
-            string userProf = data.GetTestData("User_Profile");
+            string userProf = "userProfile".AppSettings();
             string screen = data.GetTestData("Payroll_Screen");
 
 
@@ -1021,7 +1119,7 @@ namespace WL.TestAuto
         {
             #region Data Variables
             string userLang = data.GetTestData("User_Language");
-            string userProf = data.GetTestData("User_Profile");
+            string userProf = "userProfile".AppSettings();
             string screen = data.GetTestData("Payroll_Screen");
 
 
@@ -1105,7 +1203,7 @@ namespace WL.TestAuto
         {
             #region Data Variables
             string userLang = data.GetTestData("User_Language");
-            string userProf = data.GetTestData("User_Profile");
+            string userProf = "userProfile".AppSettings();
             string screen = data.GetTestData("Payroll_Screen");
 
 
@@ -1189,7 +1287,7 @@ namespace WL.TestAuto
         {
             #region Data Variables
             string userLang = data.GetTestData("User_Language");
-            string userProf = data.GetTestData("User_Profile");
+            string userProf = "userProfile".AppSettings();
             string screen = data.GetTestData("Payroll_Screen");
 
 
@@ -1274,7 +1372,7 @@ namespace WL.TestAuto
         {
             #region Data Variables
             string userLang = data.GetTestData("User_Language");
-            string userProf = data.GetTestData("User_Profile");
+            string userProf = "userProfile".AppSettings();
             string screen = data.GetTestData("Payroll_Screen");
 
 
@@ -1356,11 +1454,11 @@ namespace WL.TestAuto
 
         //[PaycodeDetailReport_select]
         [TestMethod]
-        public void WL_CAN_Payroll_002700_Verify_Standard_Reports_Detail_Earn_Ben_Dedn()
+        public void WL_CAN_Payroll_002700_Verify_Standard_Reports_Payroll_Details()
         {
             #region Data Variables
             string userLang = data.GetTestData("User_Language");
-            string userProf = data.GetTestData("User_Profile");
+            string userProf = "userProfile".AppSettings();
             string screen = data.GetTestData("Payroll_Screen");
 
 
@@ -1407,35 +1505,35 @@ namespace WL.TestAuto
                 }
             }
 
-            //Verify Standard Detail Earn/Ben/Dedn report
+            //Verify Standard Payroll Details Report
             if (Pages.Payroll.Fn_Verify_Reports_In_Payroll_ProcessTable(reportType, reportName, reportFormat, excelName))
             {
-                test.Pass("Standard Detail Earn/Ben/Dedn report opened and verified Successfully");
+                test.Pass("Standard Payroll Details Report opened and verified Successfully");
             }
             else
             {
                 GenericMethods.CaptureScreenshot();
-                test.Fail("Failed to verify Standard Detail Earn/Ben/Dedn report");
+                test.Fail("Failed to verify Standard Payroll Details Report");
                 Assert.Fail("Failed to verify Report data");
             }
 
-            test.Info("Verify Standard Detail Earn/Ben/Dedn report data exists");
-            //Verify Standard Detail Earn/Ben/Dedn report from DB
+            test.Info("Verify Standard Payroll Details Report data exists");
+            //Verify Standard Payroll Details Report from DB
             if (GlobalDB.IsStoredProcedureExists(connection, reportSPName))
             {
                 if (Pages.Home.Fn_Verify_ReportsData_In_DataBase(reportSPName, SPParams, dataToVerify))
                 {
-                    test.Pass("Standard Detail Earn/Ben/Dedn report data verified successfully");
+                    test.Pass("Standard Payroll Details Report data verified successfully");
                 }
                 else
                 {
-                    test.Fail("Failed to verify Standard Detail Earn/Ben/Dedn report data");
+                    test.Fail("Failed to verify Standard Payroll Details Report data");
                     Assert.Fail("Failed to verify Report data");
                 }
             }
             else
             {
-                test.Fail("Stored Procedure not found for Standard Detail Earn/Ben/Dedn report verification");
+                test.Fail("Stored Procedure not found for Standard Payroll Details Report verification");
                 Assert.Fail("Failed to verify Report data");
             }
         }
@@ -1446,7 +1544,7 @@ namespace WL.TestAuto
         {
             #region Data Variables
             string userLang = data.GetTestData("User_Language");
-            string userProf = data.GetTestData("User_Profile");
+            string userProf = "userProfile".AppSettings();
             string screen = data.GetTestData("Payroll_Screen");
 
 
@@ -1532,7 +1630,7 @@ namespace WL.TestAuto
         {
             #region Data Variables
             string userLang = data.GetTestData("User_Language");
-            string userProf = data.GetTestData("User_Profile");
+            string userProf = "userProfile".AppSettings();
             string screen = data.GetTestData("Payroll_Screen");
 
 
@@ -1618,7 +1716,7 @@ namespace WL.TestAuto
         {
             #region Data Variables
             string userLang = data.GetTestData("User_Language");
-            string userProf = data.GetTestData("User_Profile");
+            string userProf = "userProfile".AppSettings();
             string screen = data.GetTestData("Payroll_Screen");
 
 
@@ -1703,7 +1801,7 @@ namespace WL.TestAuto
         {
             #region Data Variables
             string userLang = data.GetTestData("User_Language");
-            string userProf = data.GetTestData("User_Profile");
+            string userProf = "userProfile".AppSettings();
             string screen = data.GetTestData("Payroll_Screen");
 
 
@@ -1789,7 +1887,7 @@ namespace WL.TestAuto
         {
             #region Data Variables
             string userLang = data.GetTestData("User_Language");
-            string userProf = data.GetTestData("User_Profile");
+            string userProf = "userProfile".AppSettings();
             string screen = data.GetTestData("Payroll_Screen");
 
 
@@ -1873,7 +1971,7 @@ namespace WL.TestAuto
         {
             #region Data Variables
             string userLang = data.GetTestData("User_Language");
-            string userProf = data.GetTestData("User_Profile");
+            string userProf = "userProfile".AppSettings();
             string screen = data.GetTestData("Payroll_Screen");
 
 
@@ -1909,7 +2007,7 @@ namespace WL.TestAuto
         public void WL_CAN_Payroll_003500_Rerun_Calculate_Payroll_Post_the_Payroll()
         {
             string userLang = data.GetTestData("User_Language");
-            string userProf = data.GetTestData("User_Profile");
+            string userProf = "userProfile".AppSettings();
             string screen = data.GetTestData("Payroll_Screen");
 
             string processGrp = GenericMethods.GetXMLNodeValue(xmlDataFile, "ProcessGroup");
@@ -1951,7 +2049,8 @@ namespace WL.TestAuto
         {
             #region Data Variables
             string userLang = data.GetTestData("User_Language");
-            string userProfile = data.GetTestData("User_Profile");
+            //string userProf = data.GetTestData("User_Profile");
+            string userProf = "userProfile".AppSettings();
             string reports = data.GetTestData("Report");
             string reportName= data.GetTestData("DownloadFileName");
 
@@ -1966,7 +2065,7 @@ namespace WL.TestAuto
             Pages.Home.Fn_ChangeUserLanguage(userLang);
 
             //Select User Profile
-            Pages.Home.Fn_SelectUserProfile(userProfile);
+            Pages.Home.Fn_SelectUserProfile(userProf);
 
             //Export Report
             GenericMethods.DeleteFilesFromDirectory(downloadsFolder, reportName);
@@ -2014,7 +2113,8 @@ namespace WL.TestAuto
         {
             #region Data Variables
             string userLang = data.GetTestData("User_Language");
-            string userProfile = data.GetTestData("User_Profile");
+            //string userProf = data.GetTestData("User_Profile");
+            string userProf = "userProfile".AppSettings();
             string reports = data.GetTestData("Report");
 
             #endregion
@@ -2023,7 +2123,7 @@ namespace WL.TestAuto
             Pages.Home.Fn_ChangeUserLanguage(userLang);
 
             //Select User Profile
-            Pages.Home.Fn_SelectUserProfile(userProfile);
+            Pages.Home.Fn_SelectUserProfile(userProf);
 
             if (!Pages.Payroll.Fn_Navigate_To_Reports_In_Payroll(reports))
             {
@@ -2059,7 +2159,8 @@ namespace WL.TestAuto
         {
             #region Data Variables
             string userLang = data.GetTestData("User_Language");
-            string userProfile = data.GetTestData("User_Profile");
+            //string userProf = data.GetTestData("User_Profile");
+            string userProf = "userProfile".AppSettings();
             string reports = data.GetTestData("Report");
             string date = data.GetTestData("Date");
             string vendor = data.GetTestData("Vendor");
@@ -2070,7 +2171,7 @@ namespace WL.TestAuto
             Pages.Home.Fn_ChangeUserLanguage(userLang);
 
             //Select User Profile
-            Pages.Home.Fn_SelectUserProfile(userProfile);
+            Pages.Home.Fn_SelectUserProfile(userProf);
 
             if (!Pages.Payroll.Fn_Navigate_To_Reports_In_Payroll(reports))
             {

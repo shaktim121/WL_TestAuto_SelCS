@@ -34,6 +34,7 @@ using Org.BouncyCastle.Bcpg.OpenPgp;
 using AventStack.ExtentReports.Gherkin.Model;
 using RazorEngine.Compilation.ImpromptuInterface;
 using System.Globalization;
+using OpenQA.Selenium.Interactions;
 
 namespace WL.TestAuto
 {
@@ -313,6 +314,40 @@ namespace WL.TestAuto
             return flag;
         }
 
+        //Method to select first value from dropdown (Dropdown with Arrow v)
+        public static bool SelectValueFromDropDown(this IWebElement SelectionObject)
+        {
+            bool flag = false;
+            By List_AllDrpDwn = By.XPath("*//div[contains(@class,'RadComboBoxDropDown') and contains(@style,'display: block')]");
+            try
+            {
+                Assert.IsTrue(SelectionObject.Exists(), "Dropdown exists in the page");
+                SelectionObject.Highlight();
+                string val_act = SelectionObject.GetAttribute("value").ToString();
+
+                SelectionObject.Click();
+                IWebElement dropDown = Browsers.GetDriver.FindElement(List_AllDrpDwn);
+                if (!dropDown.Displayed)
+                {
+                    SelectionObject.Click();
+                }
+                Thread.Sleep(2000);
+                Assert.IsTrue(dropDown.Displayed, "List Displayed");
+                IReadOnlyList<IWebElement> dlist = dropDown.FindElements(By.TagName("li"));
+                if(dlist.Count > 0)
+                {
+                    dlist.FirstOrDefault(n => n.Text != "").Click();
+                    //dlist[0].Click();
+                    flag = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message + " " + ex.StackTrace);
+            }
+            return flag;
+        }
+
         //SelectMenuFromDropDown
         public static bool SelectValueFromSlideDropDown(IWebElement SelectionObject, string menu, IWebElement divDropDown, string value)
         {
@@ -374,14 +409,23 @@ namespace WL.TestAuto
                         //Selecting Value
                         if (span.Text.ToLower().Equals(value.ToLower()))
                         {
+                            span.Highlight();
                             span.Click();
-                            IWebElement subVal = Browsers.GetDriver.FindElement(By.XPath("*//span[text()='" + subValue + "']"));
+                            IWebElement subVal = span.FindElement(By.XPath(".//following::span[text()='" + subValue + "']"));
+                            //IWebElement subVal = Browsers.GetDriver.FindElement(By.XPath("*//span[text()='" + subValue + "']"));
                             if (subVal.Exists(10))
                             {
+                                Thread.Sleep(1000);
                                 subVal.Click();
                                 flag = true;
                                 break;
                             }
+                            //else
+                            //{
+                            //    Actions ac = new Actions(Browsers.GetDriver);
+                            //    ac.MoveToElement(span);
+                            //    ac.DoubleClick(span);
+                            //}
                         }
                     }
                 }
@@ -405,7 +449,7 @@ namespace WL.TestAuto
             {
                 if (isTableEmpty)
                 {
-                    IReadOnlyList<IWebElement> noElement = Browsers.GetDriver.FindElements(By.XPath("*//table//*[contains(text(),\"No records to display\")]"));
+                    IReadOnlyList<IWebElement> noElement = table.FindElements(By.XPath(".//*[contains(text(),\"No records to display\")]"));
                     if (noElement.Count > 0)
                     {
                         noElement.FirstOrDefault().Highlight();
@@ -421,7 +465,49 @@ namespace WL.TestAuto
                         if (rows.Count > 0)
                         {
                             table.Highlight();
+                            rows.FirstOrDefault(n => n.Displayed == true).Click();
                             flag = true;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message + " " + ex.StackTrace);
+            }
+            return flag;
+        }
+
+        //Verify if specific records available in table
+        public static bool VerifyRecordDisplayedInTable(this IWebElement table, string rowValue, bool isTableEmpty)
+        {
+            Boolean flag = false;
+            try
+            {
+                if (isTableEmpty)
+                {
+                    IReadOnlyList<IWebElement> noElement = Browsers.GetDriver.FindElements(By.XPath("*//table//*[contains(text(),\"No records to display\")]"));
+                    if (noElement.Count > 0)
+                    {
+                        noElement.FirstOrDefault().Highlight();
+                        flag = true;
+                    }
+                }
+                else
+                {
+                    if (table.Exists(20))
+                    {
+                        Thread.Sleep(5000);
+                        var rowList = table.FindElements(By.XPath(".//tbody/tr[contains(@class,'rgRow') or contains(@class,'rgAltRow')]//td[text()='" + rowValue + "']"));
+                        if (rowList.Count > 0)
+                        {
+                            table.Highlight();
+                            rowList[0].Click();
+                            flag = true;
+                        }
+                        else
+                        {
+                            flag = false;
                         }
                     }
                 }
@@ -605,13 +691,39 @@ namespace WL.TestAuto
         #endregion
 
         #region File System Operations
+        //Download and Save file from UI
+        public static bool DownloadAndSaveFile(string filePath, string fileName, int waitTimeSec=30)
+        {
+            bool flag = false;
+
+            try
+            {
+                if(WaitForFileExists(filePath, fileName, waitTimeSec))
+                {
+                    flag = true;
+                }
+                else if (SaveFileFromDialog(filePath, fileName, waitTimeSec))
+                {
+                    flag = true;
+                }
+                else
+                {
+                    CaptureScreenshot();
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message + " " + ex.StackTrace);
+            }
+            return flag;
+        }
+        
         //Save Reports
-        public static bool SaveFileFromDialog(string filePath, string fileName, [Optional] int waitTimeSec)
+        public static bool SaveFileFromDialog(string filePath, string fileName, int waitTimeSec=30)
         {
             bool flag = false;
             try
             {
-
                 if (AutoItX.WinWaitActive("Save As", "", 10) != 0)
                 {
                     AutoItX.Send(filePath+"\\"+fileName);
@@ -619,14 +731,9 @@ namespace WL.TestAuto
                     //Thread.Sleep(TimeSpan.FromSeconds(waitTime));
                 }
 
-                if (waitTimeSec == 0)
-                {
-                    waitTimeSec = 30;
-                }
-
                 while (waitTimeSec != 0)
                 {
-                    if (WaitForFileExists(filePath, fileName, waitTimeSec))
+                    if (WaitForFileExists(filePath, fileName, 2)) //Check for 2 sec if file exists
                     {
                         flag = true;
                         break;
@@ -795,6 +902,44 @@ namespace WL.TestAuto
                             .First();
 
             return myFile.Name;
+        }
+
+        public static void DirectoryCopy(string sourceDirName, string destDirName, bool copySubDirs)
+        {
+            // Get the subdirectories for the specified directory.
+            DirectoryInfo dir = new DirectoryInfo(sourceDirName);
+
+            if (!dir.Exists)
+            {
+                throw new DirectoryNotFoundException(
+                    "Source directory does not exist or could not be found: "
+                    + sourceDirName);
+            }
+
+            DirectoryInfo[] dirs = dir.GetDirectories();
+            // If the destination directory doesn't exist, create it.
+            if (!Directory.Exists(destDirName))
+            {
+                Directory.CreateDirectory(destDirName);
+            }
+
+            // Get the files in the directory and copy them to the new location.
+            FileInfo[] files = dir.GetFiles();
+            foreach (FileInfo file in files)
+            {
+                string temppath = Path.Combine(destDirName, file.Name);
+                file.CopyTo(temppath, false);
+            }
+
+            // If copying subdirectories, copy them and their contents to new location.
+            if (copySubDirs)
+            {
+                foreach (DirectoryInfo subdir in dirs)
+                {
+                    string temppath = Path.Combine(destDirName, subdir.Name);
+                    DirectoryCopy(subdir.FullName, temppath, copySubDirs);
+                }
+            }
         }
 
 

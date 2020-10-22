@@ -101,6 +101,12 @@ namespace WL.TestAuto
         [FindsBy(How = How.XPath, Using = "*//em[text()='Add Employee Wizard - Position']")]
         private IWebElement Lbl_AddEmployeePositionWizard { get; set; }
 
+        [FindsBy(How = How.XPath, Using = "*//em[text()='Add Employee Wizard - Phone']")]
+        private IWebElement Lbl_AddEmployeePhoneWizard { get; set; }
+
+        [FindsBy(How = How.XPath, Using = "*//em[text()='Add Employee Wizard - Email']")]
+        private IWebElement Lbl_AddEmployeeEmailWizard { get; set; }
+
         [FindsBy(How = How.XPath, Using = "*//em[text()='Add Employee Wizard - Employment Information']")]
         private IWebElement Lbl_AddEmployeeInfoWizard { get; set; }
 
@@ -200,7 +206,7 @@ namespace WL.TestAuto
         [FindsBy(How = How.XPath, Using = "*//table[@class='rgMasterTable' and @id='ctl00_ContentPlaceHolder1_WizardAddEmployeeControl1_ctl00_PersonAddressGrid_ctl00']")]
         private IWebElement Tbl_PersonalAddress { get; set; }
 
-        [FindsBy(How = How.XPath, Using = "*//span[text()='Effective Date']/parent::*/parent::*//input[@class='riTextBox riEnabled']")]
+        [FindsBy(How = How.XPath, Using = "*//span[text()='Effective Date']/parent::*/parent::*//input[contains(@class,'riTextBox riEnabled')]")]
         private IWebElement Txt_EffectiveDate { get; set; }
 
         [FindsBy(How = How.XPath, Using = "*//span[text()='Event/Action']/parent::*/parent::*//input[@type='text']")]
@@ -425,8 +431,14 @@ namespace WL.TestAuto
         [FindsBy(How = How.XPath, Using = "*//span[text()='Start Date']/parent::*/parent::*//input[@class='riTextBox riEnabled']")]
         private IWebElement Txt_StartDate { get; set; }
 
-        [FindsBy(How = How.XPath, Using = "*//span[text()='End Date']/parent::*/parent::*//input[@id='ctl00_MainContent_EmployeeDetailAuditReportControl1_EndDate_Field_dateInput']")]
+        [FindsBy(How = How.XPath, Using = "*//a[@id='ctl00_MainContent_EmployeeDetailAuditReportControl1_StartDate_Field_popupButton']")]
+        private IWebElement Calendar_EmpAuditStartDate { get; set; }
+
+        [FindsBy(How = How.XPath, Using = "*//span[text()='End Date']/following::input[@class='riTextBox riEnabled']")]
         private IWebElement Txt_EndDate { get; set; }
+
+        [FindsBy(How = How.XPath, Using = "*//a[@id='ctl00_MainContent_EmployeeDetailAuditReportControl1_EndDate_Field_popupButton']")]
+        private IWebElement Calendar_EmpAuditEndDate { get; set; }
 
         [FindsBy(How = How.XPath, Using = "*//span[text()='Skill']/parent::*/parent::*//input[@type='text']")]
         private IWebElement DrpDwn_Skill { get; set; }
@@ -934,11 +946,13 @@ namespace WL.TestAuto
                     case "employee detail audit report":
                         if (Txt_StartDate.Exists() && Txt_EndDate.Exists() && Txt_OrgUnit.Exists() && Txt_EmpNumber.Exists() && DrpDwn_CompMethod.Exists())
                         {
-                            Txt_StartDate.SetText(DateTime.Now.ToString("M/d/yyyy"));
+                            //Txt_StartDate.SetText(DateTime.Now.ToString("M/d/yyyy"));
+                            Calendar_EmpAuditStartDate.SelectDateFromCalendarPopup(DateTime.Now.ToString("M/d/yyyy"));
                             Thread.Sleep(TimeSpan.FromSeconds(2));
-                            Txt_EndDate.Click();
-                            Thread.Sleep(TimeSpan.FromSeconds(2));
-                            Txt_EndDate.SetText(DateTime.Now.AddDays(1).ToString("M/d/yyyy"));
+                            //Txt_EndDate.Click();
+                            //Thread.Sleep(TimeSpan.FromSeconds(2));
+                            //Txt_EndDate.SetText(DateTime.Now.AddDays(1).ToString("M/d/yyyy"));
+                            Calendar_EmpAuditEndDate.SelectDateFromCalendarPopup(DateTime.Now.AddDays(1).ToString("M/d/yyyy"));
                             Thread.Sleep(TimeSpan.FromSeconds(1));
 
                             flag = Fn_Click_View_Report_And_Verify_PDF_Loaded(reportName);
@@ -1056,7 +1070,7 @@ namespace WL.TestAuto
         //Search Employee with status
         public Dictionary<string, string> Fn_Search_Employees_With_Status(string statusList)
         {
-            bool flag = false;
+            //bool flag = false;
             Dictionary<string, string> empName = new Dictionary<string, string>();
             try
             {
@@ -1070,15 +1084,19 @@ namespace WL.TestAuto
 
                         empName.Add("LastName", Tbl_Employee.FindElement(By.XPath("./tbody/tr[1]/td[2]")).Text);
                         empName.Add("FirstName", Tbl_Employee.FindElement(By.XPath("./tbody/tr[1]/td[3]")).Text);
-                        flag = true;
+                        //flag = true;
+                    }
+                    else
+                    {
+                        test.Fail("No Record present in Employee table");
                     }
                 }
             }
             catch (Exception ex)
             {
                 test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
-                EndTest();
-                //throw new Exception(ex.Message);
+                //EndTest();
+                throw new Exception(ex.Message);
             }
             return empName;
         }
@@ -1186,38 +1204,47 @@ namespace WL.TestAuto
 
                     #region  Add Employee Wizard - Biographical
                     //Wait for Add Employee Wizard - Biographical
-                    if (Lbl_AddEmployeeBioWizard.Exists(30))
+                    try
                     {
-                        Thread.Sleep(2000);
-                        driver.SwitchTo().Frame(Frame_EmployeeWizard);
+                        if (Lbl_AddEmployeeBioWizard.Exists(30))
+                        {
+                            Thread.Sleep(2000);
+                            driver.SwitchTo().Frame(Frame_EmployeeWizard);
 
-                        Txt_Number.SendKeys(empNumber);
-                        Thread.Sleep(1000);
-                        DrpDwn_Title.SelectValueFromDropDown("Mr.");
-                        Thread.Sleep(1000);
-                        Txt_FirstName.SendKeys(empFName);
-                        Txt_LastName.SendKeys(empLName);
-                        Thread.Sleep(1000);
-                        DrpDwn_Gender.SelectValueFromDropDown("Male");
-                        Thread.Sleep(1000);
-                        Txt_SIN.Click();
-                        Thread.Sleep(5000);
-                        Txt_SIN.SendKeys(empSIN);
-                        Thread.Sleep(3000);
-                        Txt_BirthDate.SendKeys("01/01/1985");
-                        Thread.Sleep(1000);
-                        DrpDwn_MaritalStatus.SelectValueFromDropDown("Single");
-                        Thread.Sleep(1000);
+                            Txt_Number.SendKeys(empNumber);
+                            Thread.Sleep(1000);
+                            DrpDwn_Title.SelectValueFromDropDown("Mr.");
+                            Thread.Sleep(1000);
+                            Txt_FirstName.SendKeys(empFName);
+                            Txt_LastName.SendKeys(empLName);
+                            Thread.Sleep(1000);
+                            DrpDwn_Gender.SelectValueFromDropDown("Male");
+                            Thread.Sleep(1000);
+                            Txt_SIN.Click();
+                            Txt_SIN.SendKeys(Keys.Home);
+                            Thread.Sleep(5000);
+                            Txt_SIN.SendKeys(empSIN);
+                            Thread.Sleep(3000);
+                            Txt_BirthDate.SendKeys("01/01/1985");
+                            Thread.Sleep(1000);
+                            DrpDwn_MaritalStatus.SelectValueFromDropDown("Single");
+                            Thread.Sleep(1000);
 
-                        Btn_NextScreen.Click();
-                        driver.SwitchTo().DefaultContent();
+                            Btn_NextScreen.Click();
+                            driver.SwitchTo().DefaultContent();
 
+                        }
+                        else
+                        {
+                            flag = false;
+                            test.Fail("Process Group selection - Failed");
+                            GenericMethods.CaptureScreenshot();
+                        }
                     }
-                    else
+                    catch (Exception)
                     {
-                        flag = false;
-                        test.Fail("Enter Employee Address - Failed");
-                        GenericMethods.CaptureScreenshot();
+                        test.Error("Failed to enter details in 'Add Employee Wizard - Biographical' screen");
+                        Assert.Fail("Failed to enter details in 'Add Employee Wizard - Biographical' screen");
                     }
 
                     #endregion
@@ -1225,127 +1252,169 @@ namespace WL.TestAuto
 
                     #region Add Employee Wizard - Address
                     //Wait for Add Employee Wizard - Address
-                    if (Lbl_AddEmployeeAddressWizard.Exists(30))
+                    try
                     {
-                        flag = true;
-                        test.Pass("Enter Employee Biographical - Passed");
-                        Thread.Sleep(2000);
-                        driver.SwitchTo().Frame(Frame_EmployeeWizard);
-
-                        Txt_Address1.SendKeys("861 FETCHISON DRIVE");
-                        Txt_Address2.SendKeys("OSHAWA ON");
-                        Txt_ZipCode.SendKeys("L1K 0L6");
-                        Txt_City.SendKeys("Ontario");
-                        Thread.Sleep(1000);
-                        DrpDwn_Country.SelectValueFromDropDown("Canada");
-                        Thread.Sleep(7000);
-                        DrpDwn_Province.SelectValueFromDropDown("Ontario");
-                        Thread.Sleep(5000);
-
-                        Btn_Insert.Click();
-                        Thread.Sleep(5000);
-
-                        if (Tbl_PersonalAddress.Exists(20))
+                        if (Lbl_AddEmployeeAddressWizard.Exists(30))
                         {
+                            flag = true;
+                            test.Pass("Enter Employee Biographical - Passed");
+                            Thread.Sleep(2000);
+                            driver.SwitchTo().Frame(Frame_EmployeeWizard);
+
+                            Txt_Address1.SendKeys("861 FETCHISON DRIVE");
+                            Txt_Address2.SendKeys("OSHAWA ON");
+                            Txt_ZipCode.SendKeys("L1K 0L6");
+                            Txt_City.SendKeys("Ontario");
                             Thread.Sleep(1000);
-                            if (Tbl_PersonalAddress.FindElements(By.XPath("./tbody/tr/td[contains(text(),'861 FETCHISON DRIVE')]")).Count > 0)
+                            DrpDwn_Country.SelectValueFromDropDown("Canada");
+                            Thread.Sleep(7000);
+                            DrpDwn_Province.SelectValueFromDropDown("Ontario");
+                            Thread.Sleep(5000);
+
+                            Btn_Insert.Click();
+                            Thread.Sleep(5000);
+
+                            if (Tbl_PersonalAddress.Exists(20))
                             {
-                                test.Pass("Address got added successfully");
+                                Thread.Sleep(1000);
+                                if (Tbl_PersonalAddress.FindElements(By.XPath("./tbody/tr/td[contains(text(),'861 FETCHISON DRIVE')]")).Count > 0)
+                                {
+                                    test.Pass("Address got added successfully");
+                                    flag = true;
+                                }
+                                else
+                                {
+                                    test.Fail("Failed to add address");
+                                    flag = false;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            flag = false;
+                            test.Fail("Enter Employee Biographical - Failed");
+                            GenericMethods.CaptureScreenshot();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        test.Error("Failed to enter details in 'Add Employee Wizard - Address' screen");
+                        throw ex;
+                    }
+
+                    #endregion
+                    Thread.Sleep(3000);
+                    Btn_NextScreen.Click();
+                    driver.SwitchTo().DefaultContent();
+
+                    #region Add Employee Wizard - Phone
+                    //Wait for Add Employee Wizard - Phone
+                    if (Lbl_AddEmployeePhoneWizard.Exists(30))
+                    {
+                        driver.SwitchTo().Frame(Frame_EmployeeWizard);
+                        Btn_NextScreen.Click();
+                        driver.SwitchTo().DefaultContent();
+                    }
+                    #endregion
+
+                    #region Add Employee Wizard - Email
+                    //Wait for Add Employee Wizard - Email
+                    if (Lbl_AddEmployeeEmailWizard.Exists(30))
+                    {
+                        driver.SwitchTo().Frame(Frame_EmployeeWizard);
+                        Btn_NextScreen.Click();
+                        driver.SwitchTo().DefaultContent();
+                    }
+                    #endregion
+
+                    #region Add Employee Wizard - Position
+                    //Wait for Add Employee Wizard - Position
+                    try
+                    {
+                        if (Lbl_AddEmployeePositionWizard.Exists(30))
+                        {
+                            flag = true;
+                            test.Pass("Enter Employee Address - Passed");
+                            driver.SwitchTo().Frame(Frame_EmployeeWizard);
+                            Thread.Sleep(2000);
+                            Txt_EffectiveDate.SetText("01/01/2019");
+                            Thread.Sleep(2000);
+                            if (DrpDwn_EventAction.GetAttribute("value") == "New Hire")
+                            {
                                 flag = true;
                             }
                             else
                             {
-                                test.Fail("Failed to add address");
+                                test.Fail("Even/Action not as expected");
                                 flag = false;
+                                GenericMethods.CaptureScreenshot();
+                            }
+                            //Getting Focus on the next dropdown
+                            Txt_EffectiveDate.SendKeys(Keys.Tab);
+                            Thread.Sleep(2000);
+                            Txt_StatusActive.SendKeys(Keys.Tab);
+                            Thread.Sleep(5000);
+
+                            //DrpDwn_Company.SelectValueFromDropDown("QA");
+                            DrpDwn_Company.SelectValueFromDropDown();
+                            Thread.Sleep(10000);
+                            //DrpDwn_LegalEntity.SelectValueFromDropDown("0897-653");
+                            DrpDwn_LegalEntity.SelectValueFromDropDown();
+                            Thread.Sleep(10000);
+                            //DrpDwn_BusinessUnit.SelectValueFromDropDown("0906-0906");
+                            DrpDwn_BusinessUnit.SelectValueFromDropDown();
+                            Thread.Sleep(10000);
+                            //DrpDwn_Dept.SelectValueFromDropDown("111165-205341");
+                            DrpDwn_Dept.SelectValueFromDropDown();
+                            Thread.Sleep(10000);
+
+                            if (DrpDwn_Job.Exists(10))
+                            {
+                                //DrpDwn_Job.SelectValueFromDropDown("Job1");
+                                DrpDwn_Job.SelectValueFromDropDown();
+                                Thread.Sleep(10000);
+                            }
+                            if (DrpDwn_Position.Exists(10))
+                            {
+                                //DrpDwn_Position.SelectValueFromDropDown("Site Supervisor");
+                                DrpDwn_Position.SelectValueFromDropDown();
+                                Thread.Sleep(10000);
+                            }
+
+                            DrpDwn_RegTemp.SelectValueFromDropDown("Regular");
+                            Thread.Sleep(10000);
+                            DrpDwn_EmpType.SelectValueFromDropDown("Permanent");
+                            Thread.Sleep(10000);
+                            DrpDwn_CompMethod.SelectValueFromDropDown("Salaried");
+                            Thread.Sleep(10000);
+                            //Txt_StandardHours.Click();
+                            GenericMethods.ClearText(Txt_StandardHours);
+                            Txt_StandardHours.SendKeys("40");
+                            GenericMethods.ClearText(Txt_CompAmount);
+                            Txt_CompAmount.SendKeys("2500");
+                            Thread.Sleep(2000);
+                            if (ChkBoxList_Workdays.SelectCheckBoxFromList("Mon;Tues;Wed;Thur;Fri", true))
+                            {
+                                flag = true;
+                            }
+                            else
+                            {
+                                test.Fail("Failed to check values in the list");
+                                flag = false;
+                                GenericMethods.CaptureScreenshot();
                             }
                         }
-                    }
-                    else
-                    {
-                        flag = false;
-                        test.Fail("Enter Employee Biographical - Failed");
-                        GenericMethods.CaptureScreenshot();
-                    }
-
-                    #endregion
-                    Thread.Sleep(5000);
-                    Btn_NextScreen.Click();
-                    driver.SwitchTo().DefaultContent();
-
-                    #region Add Employee Wizard - Position
-                    //Wait for Add Employee Wizard - Position
-                    if (Lbl_AddEmployeePositionWizard.Exists(30))
-                    {
-                        flag = true;
-                        test.Pass("Enter Employee Address - Passed");
-                        driver.SwitchTo().Frame(Frame_EmployeeWizard);
-
-                        Txt_EffectiveDate.SetText("01/01/2019");
-                        Thread.Sleep(2000);
-                        if (DrpDwn_EventAction.GetAttribute("value") == "New Hire")
-                        {
-                            flag = true;
-                        }
                         else
                         {
-                            test.Fail("Even/Action not as expected");
                             flag = false;
-                            GenericMethods.CaptureScreenshot();
-                        }
-                        //Getting Focus on the next dropdown
-                        Txt_EffectiveDate.SendKeys(Keys.Tab);
-                        Thread.Sleep(2000);
-                        Txt_StatusActive.SendKeys(Keys.Tab);
-                        Thread.Sleep(5000);
-
-                        DrpDwn_Company.SelectValueFromDropDown("QA");
-                        Thread.Sleep(10000);
-                        DrpDwn_LegalEntity.SelectValueFromDropDown("0897-653");
-                        Thread.Sleep(10000);
-                        DrpDwn_BusinessUnit.SelectValueFromDropDown("0906-0906");
-                        Thread.Sleep(10000);
-                        DrpDwn_Dept.SelectValueFromDropDown("111165-205341");
-                        Thread.Sleep(10000);
-
-                        if (DrpDwn_Job.Exists(10))
-                        {
-                            DrpDwn_Job.SelectValueFromDropDown("Job1");
-                            Thread.Sleep(10000);
-                        }
-                        if (DrpDwn_Position.Exists(10))
-                        {
-                            DrpDwn_Position.SelectValueFromDropDown("Site Supervisor");
-                            Thread.Sleep(10000);
-                        }
-
-                        DrpDwn_RegTemp.SelectValueFromDropDown("Regular");
-                        Thread.Sleep(10000);
-                        DrpDwn_EmpType.SelectValueFromDropDown("Permanent");
-                        Thread.Sleep(10000);
-                        DrpDwn_CompMethod.SelectValueFromDropDown("Salaried");
-                        Thread.Sleep(10000);
-                        //Txt_StandardHours.Click();
-                        GenericMethods.ClearText(Txt_StandardHours);
-                        Txt_StandardHours.SendKeys("40");
-                        GenericMethods.ClearText(Txt_CompAmount);
-                        Txt_CompAmount.SendKeys("2500");
-                        Thread.Sleep(2000);
-                        if (ChkBoxList_Workdays.SelectCheckBoxFromList("Mon;Tues;Wed;Thur;Fri", true))
-                        {
-                            flag = true;
-                        }
-                        else
-                        {
-                            test.Fail("Failed to check values in the list");
-                            flag = false;
+                            test.Fail("Enter Employee Address - Failed");
                             GenericMethods.CaptureScreenshot();
                         }
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        flag = false;
-                        test.Fail("Enter Employee Address - Failed");
-                        GenericMethods.CaptureScreenshot();
+                        test.Error("Failed to enter details in 'Add Employee Wizard - Position' screen");
+                        throw ex;
                     }
                     #endregion
 
@@ -1354,43 +1423,52 @@ namespace WL.TestAuto
 
                     #region Add Employee Wizard - Employement Info
                     //Wait for Add Employee Wizard - Employement Info
-                    if (Lbl_AddEmployeeInfoWizard.Exists(20))
+                    try
                     {
-                        flag = true;
-                        test.Pass("Enter Employee Position - Passed");
-                        driver.SwitchTo().Frame(Frame_EmployeeWizard);
 
-                        DrpDwn_ProcessGrp.SelectValueFromDropDown(processGrp);
-                        Thread.Sleep(1000);
-                        DrpDwn_WCBCode.SelectValueFromDropDown("Ontario WSIB");
-                        Thread.Sleep(1000);
-                        if (Txt_HireDate.GetAttribute("value") == "1/1/2019")
+                        if (Lbl_AddEmployeeInfoWizard.Exists(30))
                         {
                             flag = true;
+                            test.Pass("Enter Employee Position - Passed");
+                            driver.SwitchTo().Frame(Frame_EmployeeWizard);
+
+                            DrpDwn_ProcessGrp.SelectValueFromDropDown(processGrp);
+                            Thread.Sleep(1000);
+                            DrpDwn_WCBCode.SelectValueFromDropDown("Ontario WSIB");
+                            Thread.Sleep(1000);
+                            if (Txt_HireDate.GetAttribute("value") == "1/1/2019")
+                            {
+                                flag = true;
+                            }
+                            else
+                            {
+                                test.Fail("Hire Date not as expected");
+                                flag = false;
+                                GenericMethods.CaptureScreenshot();
+                            }
+                            Txt_ProbationDate.Clear();
+                            Txt_ProbationDate.SendKeys("4/1/2019");
+                            Txt_SeniorityDate.Clear();
+                            Txt_SeniorityDate.SendKeys("1/1/2020");
+                            Txt_NextReviewDate.Clear();
+                            Txt_NextReviewDate.SendKeys("7/1/2019");
+                            Txt_IncreaseDate.Clear();
+                            Txt_IncreaseDate.SendKeys("1/1/2020");
+                            Txt_AnniversaryDate.Clear();
+                            Txt_AnniversaryDate.SendKeys("1/1/2020");
+
                         }
                         else
                         {
-                            test.Fail("Hire Date not as expected");
                             flag = false;
+                            test.Fail("Enter Employee Position - Failed");
                             GenericMethods.CaptureScreenshot();
                         }
-                        Txt_ProbationDate.Clear();
-                        Txt_ProbationDate.SendKeys("4/1/2019");
-                        Txt_SeniorityDate.Clear();
-                        Txt_SeniorityDate.SendKeys("1/1/2020");
-                        Txt_NextReviewDate.Clear();
-                        Txt_NextReviewDate.SendKeys("7/1/2019");
-                        Txt_IncreaseDate.Clear();
-                        Txt_IncreaseDate.SendKeys("1/1/2020");
-                        Txt_AnniversaryDate.Clear();
-                        Txt_AnniversaryDate.SendKeys("1/1/2020");
-
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        flag = false;
-                        test.Fail("Enter Employee Position - Failed");
-                        GenericMethods.CaptureScreenshot();
+                        test.Error("Failed to enter details in 'Add Employee Wizard - Employement Info' screen");
+                        throw ex;
                     }
                     #endregion
 
@@ -1399,46 +1477,56 @@ namespace WL.TestAuto
 
                     #region Add Employee Wizard - Statutory Deduction
                     //Wait for Add Employee Wizard - Statutory Deduction
-                    if (Lbl_AddEmployeeStatutoryDedWizard.Exists(30))
+                    try
                     {
-                        flag = true;
-                        test.Pass("Enter Employement Info - Passed");
-                        driver.SwitchTo().Frame(Frame_EmployeeWizard);
 
-                        DrpDwn_Province.SelectValueFromDropDown("Ontario");
-                        Thread.Sleep(5000);
-                        DrpDwn_Business.SelectValueFromDropDown("BusNum:1/1.17800");
-                        Thread.Sleep(3000);
-                        if (Convert.ToInt32(Txt_FederalTaxClaim.GetAttribute("value").Replace(",", "")) > 0)
+                        if (Lbl_AddEmployeeStatutoryDedWizard.Exists(30))
                         {
-                            test.Pass("Federal Tax Claim displayed correctly : " + Txt_FederalTaxClaim.GetAttribute("value").ToString());
                             flag = true;
+                            test.Pass("Enter Employement Info - Passed");
+                            driver.SwitchTo().Frame(Frame_EmployeeWizard);
+
+                            DrpDwn_Province.SelectValueFromDropDown("Ontario");
+                            Thread.Sleep(5000);
+                            //DrpDwn_Business.SelectValueFromDropDown("BusNum:1/1.17800");
+                            DrpDwn_Business.SelectValueFromDropDown();
+                            Thread.Sleep(3000);
+                            if (Convert.ToInt32(Txt_FederalTaxClaim.GetAttribute("value").Replace(",", "")) > 0)
+                            {
+                                test.Pass("Federal Tax Claim displayed correctly : " + Txt_FederalTaxClaim.GetAttribute("value").ToString());
+                                flag = true;
+                            }
+                            else
+                            {
+                                test.Fail("Federal Tax Claim displayed incorrectly : " + Txt_FederalTaxClaim.GetAttribute("value").ToString());
+                                flag = false;
+                                GenericMethods.CaptureScreenshot();
+                            }
+
+                            if (Convert.ToInt32(Txt_ProvTaxClaim.GetAttribute("value").Replace(",", "")) > 0)
+                            {
+                                test.Pass("Provincial Tax Claim displayed correctly : " + Txt_ProvTaxClaim.GetAttribute("value").ToString());
+                                flag = true;
+                            }
+                            else
+                            {
+                                test.Fail("Provincial Tax Claim displayed incorrectly : " + Txt_ProvTaxClaim.GetAttribute("value").ToString());
+                                flag = false;
+                                GenericMethods.CaptureScreenshot();
+                            }
+
                         }
                         else
                         {
-                            test.Fail("Federal Tax Claim displayed incorrectly : " + Txt_FederalTaxClaim.GetAttribute("value").ToString());
                             flag = false;
+                            test.Fail("Enter Employement Info - Failed");
                             GenericMethods.CaptureScreenshot();
                         }
-
-                        if (Convert.ToInt32(Txt_ProvTaxClaim.GetAttribute("value").Replace(",", "")) > 0)
-                        {
-                            test.Pass("Provincial Tax Claim displayed correctly : " + Txt_ProvTaxClaim.GetAttribute("value").ToString());
-                            flag = true;
-                        }
-                        else
-                        {
-                            test.Fail("Provincial Tax Claim displayed incorrectly : " + Txt_ProvTaxClaim.GetAttribute("value").ToString());
-                            flag = false;
-                            GenericMethods.CaptureScreenshot();
-                        }
-
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        flag = false;
-                        test.Fail("Enter Employement Info - Failed");
-                        GenericMethods.CaptureScreenshot();
+                        test.Error("Failed to enter details in 'Add Employee Wizard - Statutory Deduction' screen");
+                        throw ex;
                     }
                     #endregion
 
@@ -1447,66 +1535,76 @@ namespace WL.TestAuto
 
                     #region Add Employee Wizard - Bank Info
                     //Wait for Add Employee Wizard - Bank Info
-                    if (Lbl_AddEmployeeBankInfo.Exists(30))
+                    try
                     {
-                        flag = true;
-                        test.Pass("Enter Statutory Deduction - Passed");
-                        driver.SwitchTo().Frame(Frame_EmployeeWizard);
 
-                        Btn_AddToTable.Click();
-                        Thread.Sleep(5000);
-                        if (DrpDwn_Sequence.GetAttribute("value") == "NET")
+                        if (Lbl_AddEmployeeBankInfo.Exists(30))
                         {
                             flag = true;
-                        }
-                        else
-                        {
-                            test.Fail("Sequence is not as expected");
-                            GenericMethods.CaptureScreenshot();
-                            flag = false;
-                        }
-                        DrpDwn_Country.SelectValueFromDropDown("Canada");
-                        Thread.Sleep(5000);
-                        DrpDwn_Bank.SelectValueFromDropDown("001 - Bank of Montreal");
-                        Thread.Sleep(5000);
-                        Txt_TransitRouting.SendKeys("99999");
-                        Txt_Account.SendKeys("666777888999");
-                        if (Txt_Percentage.GetAttribute("value").ToString() == "100")
-                        {
-                            flag = true;
-                        }
-                        else
-                        {
-                            GenericMethods.CaptureScreenshot();
-                            flag = false;
-                        }
-                        DrpDwn_AcType.SelectValueFromDropDown("Savings");
-                        Thread.Sleep(5000);
+                            test.Pass("Enter Statutory Deduction - Passed");
+                            driver.SwitchTo().Frame(Frame_EmployeeWizard);
 
-                        Btn_Insert.Click();
-                        Thread.Sleep(5000);
-
-                        if (Tbl_BankInfo.Exists(20))
-                        {
-                            Thread.Sleep(1000);
-                            if (Tbl_BankInfo.FindElements(By.XPath("./tbody/tr/td[contains(text(),'666777888999')]")).Count > 0)
+                            Btn_AddToTable.Click();
+                            Thread.Sleep(5000);
+                            if (DrpDwn_Sequence.GetAttribute("value") == "NET")
                             {
-                                test.Pass("Bank Info got added successfully");
                                 flag = true;
                             }
                             else
                             {
-                                test.Fail("Failed to add Bank Info");
+                                test.Fail("Sequence is not as expected");
                                 GenericMethods.CaptureScreenshot();
                                 flag = false;
                             }
-                        }
+                            DrpDwn_Country.SelectValueFromDropDown("Canada");
+                            Thread.Sleep(5000);
+                            //DrpDwn_Bank.SelectValueFromDropDown("001 - Bank of Montreal");
+                            DrpDwn_Bank.SelectValueFromDropDown();
+                            Thread.Sleep(5000);
+                            Txt_TransitRouting.SendKeys("99999");
+                            Txt_Account.SendKeys("666777888999");
+                            if (Txt_Percentage.GetAttribute("value").ToString() == "100")
+                            {
+                                flag = true;
+                            }
+                            else
+                            {
+                                GenericMethods.CaptureScreenshot();
+                                flag = false;
+                            }
+                            DrpDwn_AcType.SelectValueFromDropDown("Savings");
+                            Thread.Sleep(5000);
 
+                            Btn_Insert.Click();
+                            Thread.Sleep(5000);
+
+                            if (Tbl_BankInfo.Exists(20))
+                            {
+                                Thread.Sleep(1000);
+                                if (Tbl_BankInfo.FindElements(By.XPath("./tbody/tr/td[contains(text(),'666777888999')]")).Count > 0)
+                                {
+                                    test.Pass("Bank Info got added successfully");
+                                    flag = true;
+                                }
+                                else
+                                {
+                                    test.Fail("Failed to add Bank Info");
+                                    GenericMethods.CaptureScreenshot();
+                                    flag = false;
+                                }
+                            }
+
+                        }
+                        else
+                        {
+                            flag = false;
+                            test.Fail("Enter Statutory Deduction - Failed");
+                        }
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        flag = false;
-                        test.Fail("Enter Statutory Deduction - Failed");
+                        test.Error("Failed to enter details in 'Add Employee Wizard - Bank Info' screen");
+                        throw ex;
                     }
                     #endregion
 
@@ -1515,100 +1613,109 @@ namespace WL.TestAuto
 
                     #region Add Employee Wizard - Paycodes
                     //Wait for Add Employee Wizard - Paycodes
-                    if (Lbl_AddEmployeePaycodes.Exists(30))
+                    try
                     {
-                        flag = true;
-                        test.Pass("Enter Bank Info - Passed");
-                        driver.SwitchTo().Frame(Frame_EmployeeWizard);
 
-                        //Write code to make it generic
-                        //Income
-                        Btn_AddToTable.Click();
-                        Thread.Sleep(5000);
-                        if (MenuOpt_Income.Displayed)
+                        if (Lbl_AddEmployeePaycodes.Exists(30))
                         {
-                            MenuOpt_Income.Click();
-                            Thread.Sleep(5000);
-                        }
-                        DrpDwn_Paycode.SelectValueFromDropDown("COMTRA - Commuter / Transportation");
-                        Thread.Sleep(5000);
-                        Txt_AmountRateIncome.SendKeys("100");
-                        Thread.Sleep(2000);
-                        Btn_InsertToTable.Click();
-                        Thread.Sleep(15000);
-                        if (Tbl_EmpPaycodes.FindElements(By.XPath("./tbody/tr/td[contains(text(),'COMTRA')]")).Count > 0)
-                        {
-                            test.Pass("Paycode got added successfully");
                             flag = true;
+                            test.Pass("Enter Bank Info - Passed");
+                            driver.SwitchTo().Frame(Frame_EmployeeWizard);
+
+                            //Write code to make it generic
+                            //Income
+                            Btn_AddToTable.Click();
+                            Thread.Sleep(5000);
+                            if (MenuOpt_Income.Displayed)
+                            {
+                                MenuOpt_Income.Click();
+                                Thread.Sleep(5000);
+                            }
+                            DrpDwn_Paycode.SelectValueFromDropDown("COMTRA - Commuter / Transportation");
+                            Thread.Sleep(5000);
+                            Txt_AmountRateIncome.SendKeys("100");
+                            Thread.Sleep(2000);
+                            Btn_InsertToTable.Click();
+                            Thread.Sleep(15000);
+                            if (Tbl_EmpPaycodes.FindElements(By.XPath("./tbody/tr/td[contains(text(),'COMTRA')]")).Count > 0)
+                            {
+                                test.Pass("Paycode got added successfully");
+                                flag = true;
+                            }
+                            else
+                            {
+                                test.Fail("Failed to add Paycode");
+                                GenericMethods.CaptureScreenshot();
+                                flag = false;
+                            }
+
+                            //Write code to make it generic
+                            //Deduction
+                            Btn_AddToTable.Click();
+                            Thread.Sleep(5000);
+                            if (MenuOpt_Deduction.Displayed)
+                            {
+                                MenuOpt_Deduction.Click();
+                                Thread.Sleep(5000);
+                            }
+                            DrpDwn_Paycode.SelectValueFromDropDown("DONATE - Donations");
+                            Thread.Sleep(5000);
+                            Txt_AmountRateDeduction.SendKeys("50");
+                            Thread.Sleep(2000);
+                            Btn_InsertToTable.Click();
+                            Thread.Sleep(15000);
+                            if (Tbl_EmpPaycodes.FindElements(By.XPath("./tbody/tr/td[contains(text(),'DONATE')]")).Count > 0)
+                            {
+                                test.Pass("Paycode got added successfully");
+                                flag = true;
+                            }
+                            else
+                            {
+                                test.Fail("Failed to add Paycode");
+                                GenericMethods.CaptureScreenshot();
+                                flag = false;
+                            }
+
+                            //Write code to make it generic
+                            //Benefit
+                            Btn_AddToTable.Click();
+                            Thread.Sleep(5000);
+                            if (MenuOpt_Benefit.Displayed)
+                            {
+                                MenuOpt_Benefit.Click();
+                                Thread.Sleep(5000);
+                            }
+                            DrpDwn_Paycode.SelectValueFromDropDown("CARALL - Car Allowance");
+                            Thread.Sleep(5000);
+                            Txt_AmountRateBenefit.SendKeys("200");
+                            Thread.Sleep(2000);
+                            Btn_InsertToTable.Click();
+                            Thread.Sleep(20000);
+                            if (Tbl_EmpPaycodes.FindElements(By.XPath("./tbody/tr/td[contains(text(),'CARALL')]")).Count > 0)
+                            {
+                                test.Pass("Paycode got added successfully");
+                                flag = true;
+                            }
+                            else
+                            {
+                                test.Fail("Failed to add Paycode");
+                                GenericMethods.CaptureScreenshot();
+                                flag = false;
+                            }
+
+                            Thread.Sleep(5000);
+                            Btn_Insert.Click();
                         }
                         else
                         {
-                            test.Fail("Failed to add Paycode");
-                            GenericMethods.CaptureScreenshot();
                             flag = false;
+                            test.Fail("Enter Bank Info - Failed");
                         }
-
-                        //Write code to make it generic
-                        //Deduction
-                        Btn_AddToTable.Click();
-                        Thread.Sleep(5000);
-                        if (MenuOpt_Deduction.Displayed)
-                        {
-                            MenuOpt_Deduction.Click();
-                            Thread.Sleep(5000);
-                        }
-                        DrpDwn_Paycode.SelectValueFromDropDown("DONATE - Donations");
-                        Thread.Sleep(5000);
-                        Txt_AmountRateDeduction.SendKeys("50");
-                        Thread.Sleep(2000);
-                        Btn_InsertToTable.Click();
-                        Thread.Sleep(15000);
-                        if (Tbl_EmpPaycodes.FindElements(By.XPath("./tbody/tr/td[contains(text(),'DONATE')]")).Count > 0)
-                        {
-                            test.Pass("Paycode got added successfully");
-                            flag = true;
-                        }
-                        else
-                        {
-                            test.Fail("Failed to add Paycode");
-                            GenericMethods.CaptureScreenshot();
-                            flag = false;
-                        }
-
-                        //Write code to make it generic
-                        //Benefit
-                        Btn_AddToTable.Click();
-                        Thread.Sleep(5000);
-                        if (MenuOpt_Benefit.Displayed)
-                        {
-                            MenuOpt_Benefit.Click();
-                            Thread.Sleep(5000);
-                        }
-                        DrpDwn_Paycode.SelectValueFromDropDown("CARALL - Car Allowance");
-                        Thread.Sleep(5000);
-                        Txt_AmountRateBenefit.SendKeys("200");
-                        Thread.Sleep(2000);
-                        Btn_InsertToTable.Click();
-                        Thread.Sleep(20000);
-                        if (Tbl_EmpPaycodes.FindElements(By.XPath("./tbody/tr/td[contains(text(),'CARALL')]")).Count > 0)
-                        {
-                            test.Pass("Paycode got added successfully");
-                            flag = true;
-                        }
-                        else
-                        {
-                            test.Fail("Failed to add Paycode");
-                            GenericMethods.CaptureScreenshot();
-                            flag = false;
-                        }
-
-                        Thread.Sleep(5000);
-                        Btn_Insert.Click();
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        flag = false;
-                        test.Fail("Enter Bank Info - Failed");
+                        test.Error("Failed to enter details in 'Add Employee Wizard - Paycodes' screen");
+                        throw ex;
                     }
                     #endregion
 
@@ -1621,8 +1728,8 @@ namespace WL.TestAuto
                 driver.SwitchTo().DefaultContent();
                 Btn_CloseX.Click();
                 test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
-                EndTest();
-                //throw new Exception(ex.Message);
+                //EndTest();
+                throw new Exception(ex.Message);
             }
             return flag;
         }
@@ -1817,8 +1924,10 @@ namespace WL.TestAuto
                     Thread.Sleep(2000);
                     if (SIN != "")
                     {
+                        Txt_SIN.Click();
+                        Thread.Sleep(2000);
                         Txt_SIN.Clear();
-                        //Txt_SIN.SendKeys(Keys.Home);
+                        Txt_SIN.SendKeys(Keys.Home);
                         Thread.Sleep(5000);
                         Txt_SIN.Click();
                         Txt_SIN.SendKeys(SIN);
@@ -1947,10 +2056,11 @@ namespace WL.TestAuto
                     if (Tbl_Phones.FindElements(By.XPath(".//*[text()='No records to display.']")).Count > 0)
                     {
                         Btn_AddPhones.Click();
-
                         DrpDwn_PhType.SelectValueFromDropDown(phoneType);
                         Thread.Sleep(3000);
                         Txt_PhNumber.Click();
+                        Thread.Sleep(2000);
+                        Txt_PhNumber.SendKeys(Keys.Home);
                         Thread.Sleep(2000);
                         Txt_PhNumber.SendKeys(phNumber);
                         Thread.Sleep(3000);

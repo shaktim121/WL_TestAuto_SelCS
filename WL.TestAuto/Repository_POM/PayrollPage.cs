@@ -4,10 +4,12 @@ using OpenQA.Selenium;
 using OpenQA.Selenium.Interactions;
 using OpenQA.Selenium.Support.PageObjects;
 using OpenQA.Selenium.Support.UI;
+using Org.BouncyCastle.Crypto.Engines;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -15,6 +17,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Keys = OpenQA.Selenium.Keys;
 
 namespace WL.TestAuto
 {
@@ -185,6 +188,21 @@ namespace WL.TestAuto
 
         [FindsBy(How = How.XPath, Using = "*//input[@value='PDF']")]
         private IWebElement Btn_ExportPDF { get; set; }
+
+        [FindsBy(How = How.XPath, Using = "*//span[text()='Add']")]
+        private IWebElement Btn_AddToTable { get; set; }
+
+        [FindsBy(How = How.XPath, Using = "*//span[text()='Effective Date']/following::span/input[contains(@id,'EffectiveDate')]")]
+        private IWebElement Txt_EffectiveDate { get; set; }
+
+        [FindsBy(How = How.XPath, Using = "*//span[text()='Event/Action']/parent::*/parent::*//input[@type='text']")]
+        private IWebElement DrpDwn_EventAction { get; set; }
+
+        [FindsBy(How = How.XPath, Using = "*//span[text()='Regular/Temporary']/parent::*/parent::*//input[@type='text']")]
+        private IWebElement DrpDwn_RegTemp { get; set; }
+
+        [FindsBy(How = How.XPath, Using = "*//span[text()='Insert']")]
+        private IWebElement Btn_InsertToTable { get; set; }
 
 
         #endregion
@@ -744,8 +762,116 @@ namespace WL.TestAuto
             return flag;
         }
 
+        public bool Fn_Add_Row_In_Payroll_Position(string empState, string eventAction, string regularTemp, [Optional] string effectiveDate)
+        {
+            bool flag = false;
+            string latestEffDate;
+            try
+            {
+                if (Btn_EmpPosition.Exists(10))
+                {
+                    Btn_EmpPosition.Click();
+                    if (Lbl_EmployeePosition.Exists(15))
+                    {
+                        driver.SwitchTo().Frame(Frame_EmployeePosition);
+
+                        if (Tbl_EmployeePosition.Exists() && Tbl_EmployeePosition.FindElements(By.XPath("./tbody/tr[1]/td[text()='" + empState + "']")).Count > 0)
+                        {
+                            Tbl_EmployeePosition.FindElement(By.XPath("./tbody/tr/td[text()='" + empState + "']")).Highlight();
+                            Tbl_EmployeePosition.FindElement(By.XPath("./tbody/tr/td[text()='" + empState + "']")).Click();
+
+                            latestEffDate = Tbl_EmployeePosition.FindElement(By.XPath("./tbody/tr[1]/td[2]")).Text;
+                            Thread.Sleep(5000);
+                            flag = true;
+                        }
+                        else
+                        {
+                            test.Fail("Latest row in position is not : " + empState);
+                            driver.SwitchTo().DefaultContent();
+                            Btn_CloseX.Click();
+                            return false;
+                        }
+
+                        if(Btn_AddToTable.Exists(5))
+                        {
+                            Btn_AddToTable.Click();
+                            Thread.Sleep(5000);
+                            if (Convert.ToDateTime(latestEffDate).Date <= DateTime.Today)
+                            {
+                                effectiveDate = DateTime.Today.ToString("M/d/yyyy");
+                                Txt_EffectiveDate.SetText(effectiveDate);
+                               
+                            }
+                            else if(Convert.ToDateTime(latestEffDate).Date > DateTime.Today)
+                            {
+                                effectiveDate = Convert.ToDateTime(latestEffDate).AddDays(1).ToString("M/d/yyyy");
+                                Txt_EffectiveDate.SetText(effectiveDate);
+                            }
+                            else
+                            {
+                                effectiveDate = Convert.ToDateTime(effectiveDate).ToString("M/d/yyyy");
+                                Txt_EffectiveDate.SetText(effectiveDate);
+                            }
+                            Txt_EffectiveDate.SendKeys(Keys.Tab);
+                            Thread.Sleep(5000);
+                            DrpDwn_EventAction.SelectValueFromDropDown(eventAction);
+                            Thread.Sleep(5000);
+                            DrpDwn_RegTemp.SelectValueFromDropDown(regularTemp);
+                            Thread.Sleep(5000);
+                            Btn_InsertToTable.Click();
+                            Thread.Sleep(10000);
+                            flag = true;
+                        }
+                        else
+                        {
+                            test.Fail("Add row button is not available/Disabled");
+                            driver.SwitchTo().DefaultContent();
+                            Btn_CloseX.Click();
+                            return false;
+                        }
+
+                        //code to verify new row added
+                        if (Tbl_EmployeePosition.Exists() && Tbl_EmployeePosition.FindElements(By.XPath("./tbody/tr[1]/td[text()='" + effectiveDate + "']")).Count > 0)
+                        {
+                            Tbl_EmployeePosition.FindElement(By.XPath("./tbody/tr[1]/td[text()='" + effectiveDate + "']")).Highlight();
+                            Tbl_EmployeePosition.FindElement(By.XPath("./tbody/tr[1]/td[text()='" + effectiveDate + "']")).Click();
+                            Thread.Sleep(5000);
+                            test.Pass("Employee position row with status : " + empState + " and effective date : "+effectiveDate+" added");
+                            driver.SwitchTo().DefaultContent();
+                            Btn_CloseX.Click();
+                            flag = true;
+                        }
+                        else
+                        {
+                            test.Fail("Employee position row failed to add with effective date : " + effectiveDate);
+                            driver.SwitchTo().DefaultContent();
+                            Btn_CloseX.Click();
+                            return false;
+                        }
+
+                    }
+                    else
+                    {
+                        flag = false;
+                    }
+
+                }
+                else
+                {
+                    flag = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
+                GenericMethods.CaptureScreenshot();
+                throw new Exception(ex.Message);
+            }
+            return flag;
+        }
+        
         //Enter Employee details to verify in Field1-Value1;Field2-Value2,etc
-        public bool Fn_Verify_Employee_Details_In_Payroll_Position(string empState, string arrayEmpDetails)
+        public bool Fn_Verify_Employee_Details_In_Payroll_Position(string empState, string arrayEmpDetails, [Optional] string effDate)
         {
             Boolean flag = false;
             try
@@ -763,34 +889,60 @@ namespace WL.TestAuto
                             Tbl_EmployeePosition.FindElement(By.XPath("./tbody/tr/td[text()='" + empState + "']")).Highlight();
                             Tbl_EmployeePosition.FindElement(By.XPath("./tbody/tr/td[text()='" + empState + "']")).Click();
                             Thread.Sleep(5000);
+                            test.Pass("Employee position row with status : " + empState + " verified");
+                        }
+                        else
+                        {
+                            return false;
                         }
 
-                        string[] empDetails = arrayEmpDetails.Split(';');
-                        foreach (string empDetail in empDetails)
+                        if (effDate != "" && effDate != null && effDate != string.Empty)
                         {
-                            string field = empDetail.Split('-')[0];
-                            string value = empDetail.Split('-')[1];
-
-                            if (driver.FindElements(By.XPath("*//span[text()='" + field + "']/parent::*/following::*/span[text()='" + value + "']")).Count > 0)
+                            if (Tbl_EmployeePosition.Exists() && Tbl_EmployeePosition.FindElements(By.XPath("./tbody/tr/td[text()='" + effDate + "']")).Count > 0)
                             {
-                                driver.FindElements(By.XPath("*//span[text()='" + field + "']/parent::*/following::*/span[text()='" + value + "']"))[0].Highlight();
-                                test.Pass("Field: " + field + " found with value: " + value);
-                                flag = true;
-                            }
-                            else if (driver.FindElements(By.XPath("*//span[text()='" + field + "']/parent::*/following::*/span/input[@value='" + value + "']")).Count > 0)
-                            {
-                                driver.FindElements(By.XPath("*//span[text()='" + field + "']/parent::*/following::*/span/input[@value='" + value + "']"))[0].Highlight();
-                                test.Pass("Field: " + field + " found with value: " + value);
+                                Tbl_EmployeePosition.FindElement(By.XPath("./tbody/tr/td[text()='" + effDate + "']")).Highlight();
                                 flag = true;
                             }
                             else
                             {
-                                test.Fail("No Field: " + field + " with value: " + value + " is found");
-                                GenericMethods.CaptureScreenshot();
-                                flag = false;
+                                return false;
                             }
-
                         }
+
+                        if(arrayEmpDetails!="")
+                        {
+                            string[] empDetails = arrayEmpDetails.Split(';');
+                            foreach (string empDetail in empDetails)
+                            {
+                                string field = empDetail.Split('-')[0];
+                                string value = empDetail.Split('-')[1];
+
+                                if (driver.FindElements(By.XPath("*//span[text()='" + field + "']/parent::*/following::*/span[text()='" + value + "']")).Count > 0)
+                                {
+                                    driver.FindElements(By.XPath("*//span[text()='" + field + "']/parent::*/following::*/span[text()='" + value + "']"))[0].Highlight();
+                                    test.Pass("Field: " + field + " found with value: " + value);
+                                    flag = true;
+                                }
+                                else if (driver.FindElements(By.XPath("*//span[text()='" + field + "']/parent::*/following::*/span/input[@value='" + value + "']")).Count > 0)
+                                {
+                                    driver.FindElements(By.XPath("*//span[text()='" + field + "']/parent::*/following::*/span/input[@value='" + value + "']"))[0].Highlight();
+                                    test.Pass("Field: " + field + " found with value: " + value);
+                                    flag = true;
+                                }
+                                else
+                                {
+                                    test.Fail("No Field: " + field + " with value: " + value + " is found");
+                                    GenericMethods.CaptureScreenshot();
+                                    flag = false;
+                                }
+
+                            }
+                        }
+                        else
+                        {
+                            test.Info("No Employee details provided to verify");
+                        }
+                        
                         driver.SwitchTo().DefaultContent();
                         Btn_CloseX.Click();
                     }
@@ -811,8 +963,8 @@ namespace WL.TestAuto
             {
                 test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
                 GenericMethods.CaptureScreenshot();
-                EndTest();
-                //throw new Exception(ex.Message);
+                //EndTest();
+                throw new Exception(ex.Message);
             }
 
             return flag;
@@ -828,11 +980,11 @@ namespace WL.TestAuto
 
                 Fn_Undo_Payroll_Calculation(processGroup);
 
-                //if (DrpDwn_ProcessGrp.Exists(10))
-                //{
-                //    DrpDwn_ProcessGrp.SelectValueFromDropDown(processGroup);
-                //    Thread.Sleep(3000);
-                //}
+                if (DrpDwn_ProcessGrp.Exists(10))
+                {
+                    DrpDwn_ProcessGrp.SelectValueFromDropDown(processGroup);
+                    Thread.Sleep(3000);
+                }
 
                 if (Fn_GetPayrollRunStatus() == "New")
                 {
@@ -922,8 +1074,8 @@ namespace WL.TestAuto
                     }
                     else
                     {
-                        test.Fail("Required Process Group is not selected");
-                        GenericMethods.CaptureScreenshot();
+                        
+                        test.Info("Required Process Group "+processGroup+" is not selected. Selected Process Group is : "+ DrpDwn_ProcessGrp.GetAttribute("value"));
                         return false;
                     }
                 }
@@ -936,8 +1088,8 @@ namespace WL.TestAuto
                     }
                     else
                     {
-                        test.Fail("Required Run Type is not selected");
-                        GenericMethods.CaptureScreenshot();
+                        
+                        test.Info("Required Run Type "+runType+" is not selected. Selected Run Type is : "+ DrpDwn_RunType.GetAttribute("value"));
                         return false;
                     }
                 }
@@ -950,7 +1102,7 @@ namespace WL.TestAuto
                 else
                 {
                     flag = false;
-                    test.Fail("Failed to verify Payroll run status. Actual : " + Fn_GetPayrollRunStatus() + " and Expected : " + runStatus);
+                    test.Info("Failed to verify Payroll run status. Actual : " + Fn_GetPayrollRunStatus() + " and Expected : " + runStatus);
                     GenericMethods.CaptureScreenshot();
                 }
             }
@@ -958,8 +1110,8 @@ namespace WL.TestAuto
             {
                 test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
                 GenericMethods.CaptureScreenshot();
-                EndTest();
-                //throw new Exception(ex.Message);
+                //EndTest();
+                throw new Exception(ex.Message);
             }
             return flag;
         }
@@ -1108,9 +1260,10 @@ namespace WL.TestAuto
                     #endregion
 
                     var reportListUI = parent.FindElements(By.XPath(".//span"));
-
+                    int counter = 0;
                     foreach (var report in reportListUI)
                     {
+                        counter++;
                         if (report.Text.ToLower().Equals(reportName.ToLower()))
                         {
                             report.Click();
@@ -1144,34 +1297,13 @@ namespace WL.TestAuto
                             #region Verify Report downloaded
                             if (reportFormat.Equals("Excel"))
                             {
-                                if (downloadFileName != "")
+                                if (Pages.Home.Fn_Save_And_Verify_Excel(downloadFileName))
                                 {
-                                    if (GenericMethods.WaitForFileExists(downloadsFolder, downloadFileName + "*.xls*", 60))
-                                    {
-                                        test.Pass("Excel report download successful");
-                                        flag = true;
-                                    }
-                                    else
-                                    {
-                                        GenericMethods.CaptureScreenshot();
-                                        flag = false;
-                                        test.Fail("Failed to verify Excel report download");
-                                    }
-                                    Thread.Sleep(5000);
-                                }
-                                else if (GenericMethods.SaveFileFromDialog(downloadsFolder,report.Text + ".xlsx", 30))
-                                {
-                                    if (GenericMethods.WaitForFileExists(downloadsFolder, report.Text + ".xlsx", 30))
-                                    {
-                                        test.Pass("Excel report download successful");
-                                        flag = true;
-                                    }
+                                    flag = true;
                                 }
                                 else
                                 {
                                     GenericMethods.CaptureScreenshot();
-                                    flag = false;
-                                    test.Fail("Failed to verify Excel report download");
                                 }
                             }
                             else
@@ -1205,6 +1337,12 @@ namespace WL.TestAuto
                             #endregion
                             break;
                         }
+                        if(counter==reportListUI.Count)
+                        {
+                            test.Fail("Unable to find report : " + report);
+                            flag = false;
+                        }
+
                     }
 
 
@@ -1376,126 +1514,114 @@ namespace WL.TestAuto
 
                     
                         var reportListUI = parent.FindElements(By.XPath(".//li[contains(@class,'rmItem')]/a/span"));
+                        
                     Repeat:
                         int count = 0;
                         foreach (var report in reportListUI)
                         {
                             count++;
-                            //if (report.Text.ToLower().Equals(reportName.ToLower()) || report.Text.Contains(reportName))
-                            if (report.Text.ToLower().Equals(reportName.ToLower()))
+
+                            //For Pre Year End reports
+                            if (reportName.ToLower().Contains("pre-year end") && report.Text.ToLower().Contains("pre-year end"))
                             {
                                 report.Click();
-                                Thread.Sleep(3000);
+                                string PYE = reportName.Split('>')[1];
+                                report.FindElements(By.XPath(".//following::span[text()='" + PYE + "']")).FirstOrDefault().Click();
 
                                 #region Download Report
-                                if (reportFormat != "")
-                                {
-                                    if (reportFormat == "Excel")
-                                    {
-                                        if (downloadFileName != null)
-                                        {
-                                            GenericMethods.DeleteFilesFromDirectory(downloadsFolder, downloadFileName + "*.xls*");
-                                        }
-                                        else
-                                        {
-                                            GenericMethods.DeleteFilesFromDirectory(downloadsFolder, report.Text + ".xlsx");
-                                        }
-                                    }
 
-                                    var typeList = report.FindElements(By.XPath("./ancestor::div[@class='rmScrollWrapContainer']/following::div//span[text()='" + reportFormat + "']"));
-                                    if (typeList.Count == 0)
-                                    {
-                                        typeList = report.FindElements(By.XPath("./ancestor::li[contains(@class,'rmItem')]//div//span[text()='" + reportFormat + "']"));
-                                    }
-                                    foreach (var type in typeList)
-                                    {
-                                        if (type.Displayed && type.Size.Height > 0)
-                                        {
-                                            type.Click();
-                                            break;
-                                        }
-                                    }
-                                    Thread.Sleep(2000);
-                                }
-                                else
+                                if (reportFormat == "Excel")
                                 {
-                                    var typeList = report.FindElements(By.XPath("./ancestor::div[@class='rmScrollWrapContainer']/following::div//span[text()='PDF']"));
-                                    foreach (var type in typeList)
+                                    if (downloadFileName != null)
                                     {
-                                        if (type.Displayed && type.Size.Height > 0)
-                                        {
-                                            type.Click();
-                                            break;
-                                        }
+                                        GenericMethods.DeleteFilesFromDirectory(downloadsFolder, downloadFileName + "*.xls*");
                                     }
-                                    Thread.Sleep(2000);
+                                    else
+                                    {
+                                        GenericMethods.DeleteFilesFromDirectory(downloadsFolder, report.Text + ".xlsx");
+                                    }
                                 }
+
+                                var typeList = report.FindElements(By.XPath("./ancestor::div[@class='rmScrollWrapContainer']/following::div//span[text()='" + reportFormat + "']"));
+                                if (typeList.Count == 0)
+                                {
+                                    typeList = report.FindElements(By.XPath("./ancestor::li[contains(@class,'rmItem')]//div//span[text()='" + reportFormat + "']"));
+                                }
+                                foreach (var type in typeList)
+                                {
+                                    if (type.Displayed && type.Size.Height > 0)
+                                    {
+                                        type.Click();
+                                        break;
+                                    }
+                                }
+                                Thread.Sleep(2000);
                                 #endregion
 
                                 #region Verify report downloaded
                                 if (reportFormat.Equals("Excel"))
                                 {
-                                    if (downloadFileName != null)
-                                    {
-                                        if (GenericMethods.WaitForFileExists(downloadsFolder, downloadFileName + "*.xls*", 60))
-                                        {
-                                            test.Pass("Excel report download successful");
-                                            flag = true;
-                                        }
-                                        else
-                                        {
-                                            GenericMethods.CaptureScreenshot();
-                                            flag = false;
-                                            test.Fail("Failed to verify Excel report download");
-                                        }
-                                        Thread.Sleep(5000);
-                                    }
-                                    else if (GenericMethods.SaveFileFromDialog(downloadsFolder, report.Text + ".xlsx"))
-                                    {
-                                        if (GenericMethods.WaitForFileExists(downloadsFolder, report.Text + ".xlsx", 30))
-                                        {
-                                            test.Pass("Excel report download successful");
-                                            flag = true;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        GenericMethods.CaptureScreenshot();
-                                        flag = false;
-                                        test.Fail("Failed to verify Excel report download");
-                                    }
+                                    Pages.Home.Fn_Save_And_Verify_Excel(downloadFileName);
 
                                     Thread.Sleep(5000);
                                 }
                                 else
                                 {
-                                    if (Win_PDFReportLoad.Exists(5))
-                                    {
-                                        if (wait.Until(driver => Win_PDFReport.Exists(150)))
-                                        {
-                                            flag = true;
-                                        }
-                                    }
-
-                                    if (Win_PDFReport.Exists(10))
-                                    {
-                                        driver.SwitchTo().Frame(Frame_PDFReport);
-                                        if (driver.FindElements(By.XPath("*//embed[@type='application/pdf']")).Count > 0)
-                                        {
-                                            test.Pass("PDF report opened successfully");
-                                            flag = true;
-                                        }
-                                        else
-                                        {
-                                            test.Fail("Failed to verify PDF Report");
-                                            GenericMethods.CaptureScreenshot();
-                                            flag = false;
-                                        }
-                                        driver.SwitchTo().DefaultContent();
-                                        Btn_CloseX.Click();
-                                    }
+                                    Pages.Home.Fn_Verify_PDF_Opened_In_Window();
                                 }
                                 #endregion
+                                flag = true;
+                                break;
+                            }
+                            //if (report.Text.ToLower().Equals(reportName.ToLower()) || report.Text.Contains(reportName))
+                            else if (report.Text.ToLower().Equals(reportName.ToLower()))
+                            {
+                                report.Click();
+                                Thread.Sleep(3000);
+
+                                #region Download Report
+
+                                if (reportFormat == "Excel")
+                                {
+                                    if (downloadFileName != null)
+                                    {
+                                        GenericMethods.DeleteFilesFromDirectory(downloadsFolder, downloadFileName + "*.xls*");
+                                    }
+                                    else
+                                    {
+                                        GenericMethods.DeleteFilesFromDirectory(downloadsFolder, report.Text + ".xlsx");
+                                    }
+                                }
+
+                                var typeList = report.FindElements(By.XPath("./ancestor::div[@class='rmScrollWrapContainer']/following::div//span[text()='" + reportFormat + "']"));
+                                if (typeList.Count == 0)
+                                {
+                                    typeList = report.FindElements(By.XPath("./ancestor::li[contains(@class,'rmItem')]//div//span[text()='" + reportFormat + "']"));
+                                }
+                                foreach (var type in typeList)
+                                {
+                                    if (type.Displayed && type.Size.Height > 0)
+                                    {
+                                        type.Click();
+                                        break;
+                                    }
+                                }
+                                Thread.Sleep(2000);
+                                #endregion
+
+                                #region Verify report downloaded
+                                if (reportFormat.Equals("Excel"))
+                                {
+                                    Pages.Home.Fn_Save_And_Verify_Excel(downloadFileName);
+
+                                    Thread.Sleep(5000);
+                                }
+                                else
+                                {
+                                    Pages.Home.Fn_Verify_PDF_Opened_In_Window();
+                                }
+                                #endregion
+                                flag = true;
                                 break;
                             }
 
@@ -1518,6 +1644,8 @@ namespace WL.TestAuto
                                 test.Fail(report + " : Not Found");
                                 flag = false;
                             }
+
+                            
                         }
 
 
@@ -1569,6 +1697,18 @@ namespace WL.TestAuto
                 Thread.Sleep(5000);
                 if (Tbl_PaymentsPayroll.Exists(40))
                 {
+                    //if(Tbl_PaymentsPayroll.VerifyRecordDisplayedInTable(processGroup, false))
+                    //{
+                    //    test.Pass("Latest record found and selected");
+                    //    flag = true;
+                    //}
+                    //else
+                    //{
+                    //    test.Fail("No records exist in Payments table");
+                    //    GenericMethods.CaptureScreenshot();
+                    //    flag = false;
+                    //}
+
                     var trList = Tbl_PaymentsPayroll.FindElements(By.XPath(".//tbody/tr"));
                     if (trList.Count > 0)
                     {
@@ -1620,10 +1760,8 @@ namespace WL.TestAuto
             bool flag = false;
             try
             {
-                if (File.Exists(payslipPath + payslipName))
-                {
-                    File.Delete(payslipPath + payslipName);
-                }
+                //Delete .zip files if any
+                GenericMethods.DeleteFilesFromDirectory(payslipPath, ".zip");
 
                 if (Directory.Exists((payslipPath + payslipName).Replace(".zip", "")))
                 {

@@ -108,11 +108,12 @@ namespace WL.TestAuto
         [AssemblyCleanup]
         public static void EndClass()
         {
-            if(File.Exists(reportPath))
-            {
-                File.Copy(reportPath, @"\\cowldv03\F$\WLAutomation_Reports\" + fileNameExt);
-                Thread.Sleep(2000);
-            }
+            GenericMethods.DirectoryCopy(reportFolder, @"\\cowldv03\F$\WLAutomation_Reports\\" + fileName, true);
+            //if (File.Exists(reportPath))
+            //{
+            //    File.Copy(reportPath, @"\\cowldv03\F$\WLAutomation_Reports\" + fileNameExt);
+            //    Thread.Sleep(2000);
+            //}
         }
     }
 }

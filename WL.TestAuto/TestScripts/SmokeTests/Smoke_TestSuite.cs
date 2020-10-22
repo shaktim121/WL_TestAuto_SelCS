@@ -26,43 +26,53 @@ namespace WL.TestAuto
             //string criteria = data.GetTestData("SearchCriteria");
             string DBServer = "dataSource".AppSettings();
             string DBName = "ReportServer";
-            string connection = GlobalDB.CreateConnectionString(DBServer, DBName, "", "", false);
-
-            int failCount = 0;
-
-            //Fetch all report details through SQL query
-            DataSet reports = GlobalDB.ExecuteSQLQuery(sql, connection);
-            if (reports != null && reports.Tables[0].Rows.Count > 0)
+            string DBuserName = "dbUser".AppSettings();
+            string DBpassword = "dbPwd".AppSettings();
+            try
             {
-                test.Info("Total reports found : " + reports.Tables[0].Rows.Count);
-                foreach (DataRow row in reports.Tables[0].Rows)
+                string connection = GlobalDB.CreateConnectionString(DBServer, DBName, DBuserName, DBpassword, false);
+
+                int failCount = 0;
+
+                //Fetch all report details through SQL query
+                DataSet reports = GlobalDB.ExecuteSQLQuery(sql, connection);
+                if (reports != null && reports.Tables[0].Rows.Count > 0)
                 {
-                    if (row["DSNPath"].ToString() == "" || row["DSNName"].ToString() == "")
+                    test.Info("Total reports found : " + reports.Tables[0].Rows.Count);
+                    foreach (DataRow row in reports.Tables[0].Rows)
                     {
-                        test.Fail("DSN Path or DSN Name is empty for Report : " + row["ReportName"].ToString() + " in Directory : " + row["directory"].ToString());
-                        failCount++;
+                        if (row["DSNPath"].ToString() == "" || row["DSNName"].ToString() == "")
+                        {
+                            test.Fail("DSN Path or DSN Name is empty for Report : " + row["ReportName"].ToString() + " in Directory : " + row["directory"].ToString());
+                            failCount++;
+                        }
+                        else
+                        {
+                            test.Pass("DSN Path exist for Report : " + row["ReportName"].ToString() + " in Directory : " + row["directory"].ToString());
+                        }
                     }
-                    else
-                    {
-                        test.Pass("DSN Path exist for Report : " + row["ReportName"].ToString() + " in Directory : " + row["directory"].ToString());
-                    }
+
+                }
+                else
+                {
+                    test.Fail("Query returned no records");
+                    Assert.Fail("Test Failed");
                 }
 
+                if (failCount == 0)
+                {
+                    test.Pass("No records found with Null DSN Path");
+                }
+                else
+                {
+                    test.Fail(failCount + " : records found with Null DSN Path");
+                    Assert.Fail("Test Failed");
+                }
             }
-            else
+            catch(Exception ex)
             {
-                test.Fail("Query returned no records");
-                Assert.Fail("Test Failed");
-            }
-
-            if (failCount == 0)
-            {
-                test.Pass("No records found with Null DSN Path");
-            }
-            else
-            {
-                test.Fail(failCount + " : records found with Null DSN Path");
-                Assert.Fail("Test Failed");
+                test.Error("Exception occured with message : " + ex.Message);
+                throw;
             }
 
         }
@@ -139,6 +149,8 @@ namespace WL.TestAuto
             //Navigate to Employee Screen in Human Resources
             Pages.HR.Fn_NavigateThroughHumanResources(screen1);
 
+            Thread.Sleep(3000);
+
             //Navigate to Add Wizard Screen in Human Resources
             Pages.HR.Fn_NavigateThroughHumanResources(screen2);
 
@@ -147,6 +159,7 @@ namespace WL.TestAuto
             int failCnt = 0;
             foreach (string report in reportNames.Split(';'))
             {
+                Thread.Sleep(3000);
                 //Navigate to Reports Screen in Human Resources
                 if (Pages.HR.Fn_NavigateThroughHumanResources("Reports-" + report))
                 {
@@ -160,11 +173,11 @@ namespace WL.TestAuto
                 //Verify report
                 if (Pages.HR.Fn_View_Verify_HR_ReportDisplayedOnScreen(report))
                 {
-                    test.Log(Status.Pass, "View and verify PDF report " + report + " successful");
+                    test.Log(Status.Pass, "View and verify report " + report + " successful");
                 }
                 else
                 {
-                    test.Fail("Failed to verify PDF report displayed : " + report);
+                    test.Fail("Failed to verify report displayed : " + report);
                     failCnt++;
                 }
 
@@ -318,7 +331,7 @@ namespace WL.TestAuto
             //Select User Profile
             Pages.Home.Fn_SelectUserProfile(userProf);
 
-            //Navigate to Employee Screen in Human Resources
+            //Navigate to Employee Screen in Payroll
             if (Pages.Payroll.Fn_NavigateThroughPayroll(screen))
             {
                 test.Log(Status.Pass, "Navigated to Employee Screen under Payroll");
@@ -1176,6 +1189,91 @@ namespace WL.TestAuto
             }
         }
 
+        [TestMethod]
+        //28. Add a row in Position screen
+        public void WL_CAN_HR_UI_002800_Add_a_Row_In_Position_screen()
+        {
+            #region Data Variables
+            string userLang = data.GetTestData("User_Language");
+            string userProfile = "userProfile".AppSettings();
+            string screen = data.GetTestData("Payroll_Screen");
+            string employeeStatus = data.GetTestData("Employee_Status");
+            string eventAction = data.GetTestData("EventAction");
+            string regularTemp = data.GetTestData("RegularTemp");
+            #endregion
+
+            //Change User language after log in
+            Pages.Home.Fn_ChangeUserLanguage(userLang);
+
+            //Select User Profile
+            Pages.Home.Fn_SelectUserProfile(userProfile);
+
+            //Navigate to Employee Screen in Payroll
+            if (Pages.Payroll.Fn_NavigateThroughPayroll(screen))
+            {
+                test.Pass("Navigated to Employee Screen under Payroll");
+            }
+            else
+            {
+                test.Fail("Failed to navigate to Employee Screen under Payroll");
+                Assert.Fail();
+            }
+
+            if(Pages.HR.Fn_Search_Employees_With_Status(employeeStatus)==null)
+            {
+                Assert.Fail();
+            }
+
+            if(!Pages.Payroll.Fn_Add_Row_In_Payroll_Position(employeeStatus, eventAction, regularTemp))
+            {
+                Assert.Fail();
+            }
+
+        }
+
+        [TestMethod]
+        public void WL_CAN_Payroll_001000_Create_Payroll_Processing_Group()
+        {
+            string userLang = data.GetTestData("User_Language");
+            string userProf = data.GetTestData("User_Profile");
+            string screen = data.GetTestData("Setup_Screen");
+            /*string country = data.GetTestData("Country");
+            string payFrequency = data.GetTestData("Pay_Frequency");
+            string processGroup = data.GetTestData("Process_Group");
+            string engDesc = data.GetTestData("English_Desc");
+            string frenchDesc = data.GetTestData("French_Desc");
+            string period = data.GetTestData("Period");
+            string startDate = data.GetTestData("Start_Date");
+            string cutoffDate = data.GetTestData("Cutoff_Date");*/
+
+
+            string country = GenericMethods.GetXMLNodeValue(xmlDataFile, "Country");
+            string payFrequency = GenericMethods.GetXMLNodeValue(xmlDataFile, "PayFrequency");
+            string processGroup = GenericMethods.GetXMLNodeValue(xmlDataFile, "ProcessGroupName");
+            string engDesc = GenericMethods.GetXMLNodeValue(xmlDataFile, "EnglishDesc");
+            string frenchDesc = GenericMethods.GetXMLNodeValue(xmlDataFile, "FrenchDesc");
+            string period = GenericMethods.GetXMLNodeValue(xmlDataFile, "Period");
+            string startDate = GenericMethods.GetXMLNodeValue(xmlDataFile, "StartDate");
+            string cutoffDate = GenericMethods.GetXMLNodeValue(xmlDataFile, "CutOffDate");
+
+            //Change User language after log in
+            Pages.Home.Fn_ChangeUserLanguage(userLang);
+
+            //Select User Profile
+            Pages.Home.Fn_SelectUserProfile(userProf);
+
+            //Navigate to Payroll Processing Group in Setup
+            Pages.Setup.Fn_Navigate_Through_Setup(screen);
+
+            //Create Payroll processing group
+            if (!Pages.Setup.Fn_Create_Payroll_Processing_Group(country, payFrequency, processGroup, engDesc, frenchDesc, period, startDate, cutoffDate))
+            {
+                GenericMethods.CaptureScreenshot();
+                Assert.Fail("Failed to create Payroll Procesing Group");
+
+            }
+        }
+
 
         //************************ Employee Hire Edit and Terminate ************************//
         #region Employee Hire Edit and Terminate
@@ -1198,7 +1296,11 @@ namespace WL.TestAuto
             string update_sql_edit = "UPDATE dbo.WL_CAN_NEW_HIRE_001100_Edit_an_Employee_record SET Emp_Number = " + EmpNum + " WHERE TestCaseName = 'WL_CAN_NEW_HIRE_001100_Edit_an_Employee_record';";
             string update_sql_term = "UPDATE dbo.WL_CAN_NEW_HIRE_001200_Terminate_an_Employee_record SET Emp_Number = " + EmpNum + " WHERE TestCaseName = 'WL_CAN_NEW_HIRE_001200_Terminate_an_Employee_record';";
 
-            string connection = GlobalDB.CreateConnectionString("dataSource".AppSettings(), "dbName".AppSettings(), "", "", false);
+            string DBServer = "dataSource".AppSettings();
+            string DBName = "dbName".AppSettings();
+            string DBuserName = "dbUser".AppSettings();
+            string DBpassword = "dbPwd".AppSettings();
+            string connection = GlobalDB.CreateConnectionString(DBServer, DBName, DBuserName, DBpassword, false);
             if (GlobalDB.ExecuteNonSQLQuery(update_sql_edit, connection) > 0 && GlobalDB.ExecuteNonSQLQuery(update_sql_term, connection) > 0 && GlobalDB.ExecuteNonSQLQuery(update_sql_hire, connection) > 0)
             {
                 test.Info("Employee Number updated successfully for Hire, Edit and Terminate Employee");
@@ -1378,6 +1480,7 @@ namespace WL.TestAuto
 
         #endregion
 
+        //************************ Employee Hire Edit and Terminate ************************//
 
     }
 }

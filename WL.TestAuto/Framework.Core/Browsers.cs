@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Firefox;
+using Microsoft.Edge.SeleniumTools;
 
 namespace WL.TestAuto
 {
@@ -14,19 +15,30 @@ namespace WL.TestAuto
     {
         //private static readonly string baseURL = ConfigurationManager.AppSettings["url"];
         //private static readonly string browser = ConfigurationManager.AppSettings["browser"];
+        static string projectFolderPath = Environment.CurrentDirectory;
         public static void Init(string browser, string baseURL)
         {
-            switch (browser)
+            switch (browser.ToLower())
             {
-                case "Chrome":
+                case "chrome":
                     Utilities.Kill_Process("chromedriver");
                     GetDriver = new ChromeDriver();
                     break;
-                case "IE":
+                case "ie":
                     //_driver = new InternetExplorerDriver();
                     break;
-                case "Firefox":
+                case "firefox":
+                    Utilities.Kill_Process("geckodriver");
                     GetDriver = new FirefoxDriver();
+                    break;
+                case "edge":
+                    string edgeDriverPath = projectFolderPath.Substring(0, projectFolderPath.LastIndexOf("bin"))+ "Framework.Core\\";
+                    EdgeOptions options = new EdgeOptions()
+                    {
+                        UseChromium = true
+                    };
+                    GetDriver = new EdgeDriver(edgeDriverPath, options);
+                    //GetDriver = new EdgeDriver(@"C:\Users\sahus\Downloads\edgedriver_win64");
                     break;
             }
 
@@ -40,6 +52,7 @@ namespace WL.TestAuto
         public static void Goto(string url)
         {
             GetDriver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(30);
+            GetDriver.Manage().Timeouts().PageLoad = TimeSpan.FromSeconds(300);
             GetDriver.Manage().Window.Maximize();
             GetDriver.Url = url;
         }

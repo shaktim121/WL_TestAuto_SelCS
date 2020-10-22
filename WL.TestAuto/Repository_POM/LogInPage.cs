@@ -21,13 +21,13 @@ namespace WL.TestAuto
         [FindsBy(How = How.Id, Using = "Username")]
         private IWebElement Txt_UserName_Aut { get; set; }
 
-        [FindsBy(How = How.XPath, Using = "*//input[translate(@id,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='username' or @id='Login1_UserName']")]
+        [FindsBy(How = How.XPath, Using = "*//input[translate(@id,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='username' or @id='Login1_UserName' or @id='1-email']")]
         private IWebElement Txt_UserName { get; set; }
 
-        [FindsBy(How = How.XPath, Using = "*//input[@id='Password' or @id='password' or @id='Login1_Password']")]
+        [FindsBy(How = How.XPath, Using = "*//input[@id='Password' or @id='password' or @id='Login1_Password' or @name='password']")]
         private IWebElement Txt_Password { get; set; }
 
-        [FindsBy(How = How.XPath, Using = "*//*[@value='Log In' or text()='Login' or text()='Continue' and @type='submit']")]
+        [FindsBy(How = How.XPath, Using = "*//*[@value='Log In' or text()='Login' or text()='Continue' and @type='submit' or text()='Log In']")]
         private IWebElement Btn_Login { get; set; }
 
         [FindsBy(How = How.Id, Using = "Password")]
@@ -136,19 +136,19 @@ namespace WL.TestAuto
 
                 ClickOnLogInButton();
 
-                if (ConfigurationManager.AppSettings["browser"].ToLower().Equals("firefox"))
-                {
-                    driver.SwitchTo().Alert().Accept();
+                //if (ConfigurationManager.AppSettings["browser"].ToLower().Equals("firefox"))
+                //{
+                //    driver.SwitchTo().Alert().Accept();
 
-                    /*foreach (string handle in driver.WindowHandles)
-                    {
-                        IWebDriver popup = driver.SwitchTo().Window(handle);
-                        if (popup.Title.Contains("Security Warning"))
-                        {
-                            break;
-                        }
-                    }*/
-                }
+                //    /*foreach (string handle in driver.WindowHandles)
+                //    {
+                //        IWebDriver popup = driver.SwitchTo().Window(handle);
+                //        if (popup.Title.Contains("Security Warning"))
+                //        {
+                //            break;
+                //        }
+                //    }*/
+                //}
 
                 WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(30));
                 wait.Until(ExpectedConditions.ElementExists(By.Id("lblLoggedInValue")));

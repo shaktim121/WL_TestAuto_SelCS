@@ -35,7 +35,7 @@ namespace WL.TestAuto
         [FindsBy(How = How.XPath, Using = "*//a[text()='Payroll Processing Group']")]
         private IWebElement Link_PayProcessGroup { get; set; }
 
-        [FindsBy(How = How.XPath, Using = "*//a[text()='Organizational Unit Level' or text()='Organization Unit Level']")]
+        [FindsBy(How = How.XPath, Using = "*//a[text()='Organizational Unit' or text()='Organization Unit']")]
         private IWebElement Link_OrgUnitLevel { get; set; }
 
         [FindsBy(How = How.XPath, Using = "*//a[text()='Wizard Template']")]
@@ -768,7 +768,7 @@ namespace WL.TestAuto
             bool flag = false;
             try
             {
-                if (Tbl_PayProcessGroup.FindElements(By.XPath("./tbody/tr//td[text()='" + processGrp + "']")).Count > 0)
+                if (Tbl_PayProcessGroup.FindElements(By.XPath("./tbody/tr//td[text()='" + processGrp + "']/following::td[text()='"+engDesc+"']")).Count > 0)
                 {
                     Tbl_PayProcessGroup.FindElements(By.XPath("./tbody/tr//td[text()='" + processGrp + "']"))[0].Highlight();
                     return true;
@@ -795,7 +795,7 @@ namespace WL.TestAuto
 
                 Btn_InsertToTable.Click();
                 Thread.Sleep(5000);
-                if (Tbl_PayProcessGroup.FindElements(By.XPath("./tbody/tr//td[text()='" + processGrp + "']")).Count > 0)
+                if (Tbl_PayProcessGroup.FindElements(By.XPath("./tbody/tr//td[text()='" + processGrp + "']/following::td[text()='" + engDesc + "']")).Count > 0)
                 {
                     Tbl_PayProcessGroup.FindElements(By.XPath("./tbody/tr//td[text()='" + processGrp + "']"))[0].Highlight();
                     flag = true;

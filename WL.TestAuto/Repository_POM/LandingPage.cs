@@ -18,6 +18,22 @@ namespace WL.TestAuto
     {
         private IWebDriver driver;
 
+        #region Common Object Collection
+
+        [FindsBy(How = How.XPath, Using = "*//td[@class='rwWindowContent rwExternalContent rwLoading']")]
+        private IWebElement Win_PDFReportLoad { get; set; }
+
+        [FindsBy(How = How.XPath, Using = "*//td[@class='rwWindowContent rwExternalContent']")]
+        private IWebElement Win_PDFReport { get; set; }
+
+        [FindsBy(How = How.XPath, Using = "*//iframe[contains(@name,'RegisterReportWindow') or contains(@name,'PayrollProcessWindow') or contains(@name,'YearEndWindows') or contains(@name,'YearEndReportWindows')]")]
+        private IWebElement Frame_PDFReport { get; set; }
+
+        [FindsBy(How = How.XPath, Using = "*//a[@class='rwCloseButton' and @title='Close']")]
+        private IWebElement Btn_CloseX { get; set; }
+
+        #endregion
+
         #region Home Page Object Collection
         [FindsBy(How = How.Id, Using = "lblLoggedInValue")]
         private IWebElement Lbl_user { get; set; }
@@ -121,18 +137,19 @@ namespace WL.TestAuto
                 flag = Drpdwn_UserGroup.SelectValueFromDropDown(Option);
                 if (flag)
                 {
-                    test.Pass("User Type selected");
+                    test.Pass("User Type selected : " + Option);
                 }
                 else
                 {
-                    test.Fail("User Type not selected");
+                    test.Fail("Failed to select User Type: " + Option);
+                    throw new Exception();
                 }
             }
             catch (Exception ex)
             {
                 test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
-                EndTest();
-                //throw new Exception(ex.Message);
+                //EndTest();
+                throw new Exception(ex.Message);
             }
             
             return flag;
@@ -263,6 +280,9 @@ namespace WL.TestAuto
                 }
 
                 ds = GlobalDB.ExecuteStoredProc(storedProc, spParams, connection);
+                test.Info("Stored Procedure : " + storedProc);
+                test.Info("SP Parameters : " + spParams);
+                test.Info("Connection parameters: " + connection);
 
                 if (dataToVerify.ToLower().Contains("data exists"))
                 {
@@ -289,7 +309,34 @@ namespace WL.TestAuto
                             cnt++;
                             string aval = Convert.ToString(dRow[dt.Split(':')[0]]);
                             string eval = dt.Split(':')[1];
-                            if (aval.Equals(eval))
+                            
+                            if(eval.ToLower().Contains("non zero"))
+                            {
+                                if(aval!="")
+                                {
+                                    int a = (int)Convert.ToDouble(aval);
+                                    if (!a.Equals(0))
+                                    {
+                                        test.Pass("column : " + dt.Split(':')[0] + " has Non Zero value in the report DB");
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        test.Fail("column: " + dt.Split(':')[0] + " has Zero value in the report DB");
+                                        flag = false;
+                                        break;
+                                    }
+                                }
+                                else
+                                {
+                                    test.Fail("column: " + dt.Split(':')[0] + " has Zero value in the report DB");
+                                    flag = false;
+                                    break;
+                                }
+                                
+                            }
+
+                            else if (aval.Contains(eval))
                             {
                                 test.Pass(eval + " : found in the report DB under column : "+ dt.Split(':')[0]);
                                 break;
@@ -438,6 +485,88 @@ namespace WL.TestAuto
                 throw new Exception(ex.Message);
             }
             return colval;
+        }
+
+
+        #endregion
+
+        #region Common Methods for any page
+
+        //Verify PDF window opened
+        public bool Fn_Verify_PDF_Opened_In_Window()
+        {
+            bool flag = false;
+            WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(30));
+            try
+            {
+                if (Win_PDFReportLoad.Exists(5))
+                {
+                    if (wait.Until(driver => Win_PDFReport.Exists(45)))
+                    {
+                        flag = true;
+                    }
+                }
+
+                if (Win_PDFReport.Exists(10))
+                {
+                    string frameName = Win_PDFReport.FindElements(By.XPath(".//iframe")).FirstOrDefault().GetAttribute("name");
+                    driver.SwitchTo().Frame(frameName);
+                    if (driver.FindElements(By.XPath("*//embed[@type='application/pdf']")).Count > 0)
+                    {
+                        test.Pass("PDF report opened successfully");
+                        flag = true;
+                    }
+                    else
+                    {
+                        test.Fail("Failed to verify PDF Report");
+                        GenericMethods.CaptureScreenshot();
+                        flag = false;
+                    }
+                    driver.SwitchTo().DefaultContent();
+                    Btn_CloseX.Click();
+                }
+            }
+            catch (Exception ex)
+            {
+                test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
+                GenericMethods.CaptureScreenshot();
+                throw new Exception(ex.Message);
+            }
+            return flag;
+        }
+
+        //Verify Downloaded Excel
+        public bool Fn_Save_And_Verify_Excel(string downloadFileName="")
+        {
+            bool flag = false;
+            try
+            {
+
+                if (GenericMethods.WaitForFileExists(downloadsFolder, downloadFileName + "*.xls*", 60))
+                {
+                    test.Pass("Excel report download successful");
+                    flag = true;
+                }
+                else if (GenericMethods.SaveFileFromDialog(downloadsFolder, downloadFileName + ".xlsx", 30))
+                {
+                    GenericMethods.CaptureScreenshot();
+                    test.Pass("Excel report download successful");
+                    flag = true;
+                }
+                else
+                {
+                    GenericMethods.CaptureScreenshot();
+                    test.Fail("Failed to verify Excel report download");
+                }
+            }
+            catch (Exception ex)
+            {
+                test.Error(ex.Message.ToString() + "Stack Trace:" + ex.StackTrace.ToString());
+                GenericMethods.CaptureScreenshot();
+                throw new Exception(ex.Message);
+            }
+            return flag;
+            
         }
 
 

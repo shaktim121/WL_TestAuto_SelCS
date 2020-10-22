@@ -29,9 +29,13 @@ namespace WL.TestAuto
                 {
                     cnn = @"Data Source=" + DBSrv + ";Initial Catalog=" + DB + ";Integrated Security=SSPI;";
                 }
-                else
+                else if(user!="" && pwd!="")
                 {
                     cnn = @"Data Source=" + DBSrv + ";Initial Catalog=" + DB + ";User ID=" + user + ";Password=" + pwd + "";
+                }
+                else
+                {
+                    throw new Exception("User Name and Password are required for SQL Server Authentication");
                 }
             }
             catch (Exception ex)
@@ -163,7 +167,15 @@ namespace WL.TestAuto
 
                 foreach (string str in parameter)
                 {
-                    command.Parameters.Add(new SqlParameter(str.Split(':')[0], str.Split(':')[1]));
+                    if(str.Split(':')[1].ToString().ToLower()=="null")
+                    {
+                        command.Parameters.Add(new SqlParameter(str.Split(':')[0], DBNull.Value));
+                    }
+                    else
+                    {
+                        command.Parameters.Add(new SqlParameter(str.Split(':')[0], str.Split(':')[1]));
+                    }
+                    
                 }
 
                 adapter = new SqlDataAdapter(command);

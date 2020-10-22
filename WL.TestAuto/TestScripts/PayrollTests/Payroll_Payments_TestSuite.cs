@@ -26,7 +26,7 @@ namespace WL.TestAuto
         {
             #region Data Variables
             string userLang = data.GetTestData("User_Language");
-            string userProf = data.GetTestData("User_Profile");
+            string userProf = "userProfile".AppSettings();
             string screen = data.GetTestData("Payroll_Screen");
 
             string processGrp = GenericMethods.GetXMLNodeValue(xmlDataFile, "ProcessGroup");
@@ -200,7 +200,7 @@ namespace WL.TestAuto
         {
             #region Data Variables
             string userLang = data.GetTestData("User_Language");
-            string userProf = data.GetTestData("User_Profile");
+            string userProf = "userProfile".AppSettings();
             string screen = data.GetTestData("Payroll_Screen");
             string reportType = data.GetTestData("Report_Type");
             string reportName = data.GetTestData("Report_Name");
@@ -316,7 +316,7 @@ namespace WL.TestAuto
         {
             #region Data Variables
             string userLang = data.GetTestData("User_Language");
-            string userProf = data.GetTestData("User_Profile");
+            string userProf = "userProfile".AppSettings();
             string screen = data.GetTestData("Payroll_Screen");
 
             string processGrp = GenericMethods.GetXMLNodeValue(xmlDataFile, "ProcessGroup");
@@ -385,7 +385,7 @@ namespace WL.TestAuto
         {
             #region Data Variables
             string userLang = data.GetTestData("User_Language");
-            string userProf = data.GetTestData("User_Profile");
+            string userProf = "userProfile".AppSettings();
             string screen = data.GetTestData("Payroll_Screen");
 
             string processGrp = GenericMethods.GetXMLNodeValue(xmlDataFile, "ProcessGroup");
@@ -454,7 +454,7 @@ namespace WL.TestAuto
         {
             #region Data Variables
             string userLang = data.GetTestData("User_Language");
-            string userProf = data.GetTestData("User_Profile");
+            string userProf = "userProfile".AppSettings();
             string screen = data.GetTestData("Payroll_Screen");
 
             string processGrp = GenericMethods.GetXMLNodeValue(xmlDataFile, "ProcessGroup");
@@ -523,7 +523,7 @@ namespace WL.TestAuto
         {
             #region Data Variables
             string userLang = data.GetTestData("User_Language");
-            string userProf = data.GetTestData("User_Profile");
+            string userProf = "userProfile".AppSettings();
             string screen = data.GetTestData("Payroll_Screen");
 
             string processGrp = GenericMethods.GetXMLNodeValue(xmlDataFile, "ProcessGroup");
@@ -592,7 +592,7 @@ namespace WL.TestAuto
         {
             #region Data Variables
             string userLang = data.GetTestData("User_Language");
-            string userProf = data.GetTestData("User_Profile");
+            string userProf = "userProfile".AppSettings();
             string screen = data.GetTestData("Payroll_Screen");
 
             string processGrp = GenericMethods.GetXMLNodeValue(xmlDataFile, "ProcessGroup");
@@ -661,7 +661,7 @@ namespace WL.TestAuto
         {
             #region Data Variables
             string userLang = data.GetTestData("User_Language");
-            string userProf = data.GetTestData("User_Profile");
+            string userProf = "userProfile".AppSettings();
             string screen = data.GetTestData("Payroll_Screen");
 
             string processGrp = GenericMethods.GetXMLNodeValue(xmlDataFile, "ProcessGroup");
@@ -729,7 +729,7 @@ namespace WL.TestAuto
         {
             #region Data Variables
             string userLang = data.GetTestData("User_Language");
-            string userProf = data.GetTestData("User_Profile");
+            string userProf = "userProfile".AppSettings();
             string screen = data.GetTestData("Payroll_Screen");
 
             string processGrp = GenericMethods.GetXMLNodeValue(xmlDataFile, "ProcessGroup");
@@ -796,7 +796,7 @@ namespace WL.TestAuto
         {
             #region Data Variables
             string userLang = data.GetTestData("User_Language");
-            string userProf = data.GetTestData("User_Profile");
+            string userProf = "userProfile".AppSettings();
             string screen = data.GetTestData("Payroll_Screen");
 
             string processGrp = GenericMethods.GetXMLNodeValue(xmlDataFile, "ProcessGroup");
@@ -864,7 +864,7 @@ namespace WL.TestAuto
         {
             #region Data Variables
             string userLang = data.GetTestData("User_Language");
-            string userProf = data.GetTestData("User_Profile");
+            string userProf = "userProfile".AppSettings();
             string screen = data.GetTestData("Payroll_Screen");
 
             string processGrp = GenericMethods.GetXMLNodeValue(xmlDataFile, "ProcessGroup");
@@ -931,7 +931,7 @@ namespace WL.TestAuto
         {
             #region Data Variables
             string userLang = data.GetTestData("User_Language");
-            string userProf = data.GetTestData("User_Profile");
+            string userProf = "userProfile".AppSettings();
             string screen = data.GetTestData("Payroll_Screen");
 
             string processGrp = GenericMethods.GetXMLNodeValue(xmlDataFile, "ProcessGroup");
@@ -999,7 +999,7 @@ namespace WL.TestAuto
         {
             #region Data Variables
             string userLang = data.GetTestData("User_Language");
-            string userProf = data.GetTestData("User_Profile");
+            string userProf = "userProfile".AppSettings();
             string screen = data.GetTestData("Payroll_Screen");
 
             string processGrp = GenericMethods.GetXMLNodeValue(xmlDataFile, "ProcessGroup");
@@ -1045,7 +1045,7 @@ namespace WL.TestAuto
         {
             #region Data Variables
             string userLang = data.GetTestData("User_Language");
-            string userProf = data.GetTestData("User_Profile");
+            string userProf = "userProfile".AppSettings();
             string screen = data.GetTestData("Payroll_Screen");
 
             string processGrp = GenericMethods.GetXMLNodeValue(xmlDataFile, "ProcessGroup");
@@ -1093,7 +1093,7 @@ namespace WL.TestAuto
         {
             #region Data Variables
             string userLang = data.GetTestData("User_Language");
-            string userProf = data.GetTestData("User_Profile");
+            string userProf = "userProfile".AppSettings();
             string screen = data.GetTestData("Payroll_Screen");
             string employeeStatus = data.GetTestData("Employee_Status");
 
@@ -1129,7 +1129,7 @@ namespace WL.TestAuto
         {
             #region Data Variables
             string userLang = data.GetTestData("User_Language");
-            string userProf = data.GetTestData("User_Profile");
+            string userProf = "userProfile".AppSettings();
             string screen = data.GetTestData("Payroll_Screen");
 
             string processGrp = GenericMethods.GetXMLNodeValue(xmlDataFile, "ProcessGroup");
